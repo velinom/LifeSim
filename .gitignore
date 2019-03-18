@@ -1,0 +1,15 @@
+# Ignore library folder, used by Unity never in gitignore
+[Ll]ibrary/
+
+# Ignore obj folder, created by VS, used for C#
+[Oo]bj/
+
+# Ignore temp folder, used by unity during build
+[Tt]emp/
+
+# Created by VS-code, holds settings
+.vscode/
+
+# C# stuff that isn't needed in git
+*.csproj
+*.sln
