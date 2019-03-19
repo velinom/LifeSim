@@ -40,11 +40,11 @@ public class BoardManager : MonoBehaviour {
 			}
 		}
 
+		// Now place the middle tiles, start by calculating how many to place and
+		// adding three seed tiles to the queue
 		int tilesToPlace = (int)(SIZE * SIZE * MID_ELEVATION_PERCENT);
-		Debug.Log("Tiles to Place: " + tilesToPlace);
+		Debug.Log(tilesToPlace);
 		int placedTiles = 0;
-
-		// Start by adding three "root" tiles to queue
 		Vector2 root1 = new Vector2(Random.Range(0, SIZE), Random.Range(0, SIZE));
 		Vector2 root2 = new Vector2(Random.Range(0, SIZE), Random.Range(0, SIZE));
 		Vector2 root3 = new Vector2(Random.Range(0, SIZE), Random.Range(0, SIZE));
@@ -53,11 +53,13 @@ public class BoardManager : MonoBehaviour {
 		openList.Enqueue(root2);
 		openList.Enqueue(root3);
 
+		// In a loop, place tiles until queue is empty or we have reached tilesToPlace
 		while (placedTiles < tilesToPlace && openList.Count > 0) {
 			// Pop off the queue and add make the tile med-elevation
 			Vector2 currentTile = openList.Dequeue();
 			int curX = (int)currentTile.x;
 			int curY = (int)currentTile.y;
+			if (boardArray[curX, curY] == ElevationType.Medium) continue;
 			boardArray[curX, curY] = ElevationType.Medium;
 			placedTiles++;
 
@@ -87,10 +89,9 @@ public class BoardManager : MonoBehaviour {
 				}
 			}
 		}
-		Debug.Log("Tiles Placed: " + placedTiles);
+		Debug.Log("Placed: " + placedTiles);
 	}
 	
-
   // Uses the randomly generaed boardArray to place random tiles of the correct type
 	// on the board by instantiating it and putting it in the right place.
 	private void createBoard() {
@@ -124,6 +125,8 @@ public class BoardManager : MonoBehaviour {
 		}
 	}
 
+	// To be called by the game manager, randomly makes the board
+	// and instantiates the tiles in their place
 	public void createScene() {
 		setupBoard();
 		createBoard();
