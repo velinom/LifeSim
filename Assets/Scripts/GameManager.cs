@@ -4,9 +4,17 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour {
 
-	// Use this for initialization
-	void Start () {
-		
+	public BoardManager boardScript;
+
+	// Called when the GameManager is instantiated. Initialize values
+	void Awake () {
+		boardScript = GetComponent<BoardManager>();
+		initGame();
+	}
+
+  // Initializes the game
+	private void initGame() {
+		boardScript.createScene();
 	}
 	
 	// Update is called once per frame
