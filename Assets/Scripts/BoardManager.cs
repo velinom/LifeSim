@@ -11,8 +11,12 @@ public class BoardManager : MonoBehaviour {
 	// In hundreds of px for use with unity placing.
 	public float CELL_SIZE = 1.2f;
 
+	// For the random generation, percentage that each tile should take up
+	// and the chance of expanding any given cell on the front
 	public double MID_ELEVATION_PERCENT = 0.4;
 	public double MID_EXPANSION_CHANCE = 0.5;
+	public double HIGH_ELEVATION_PERCENT = 0.15;
+	public double HIGH_EXPANSION_CHANCE = 0.4;
 
 	// Floor tiles that are passed in through Unity
 	public GameObject[] LOW_ELEVATION_TILES;
@@ -43,7 +47,6 @@ public class BoardManager : MonoBehaviour {
 		// Now place the middle tiles, start by calculating how many to place and
 		// adding three seed tiles to the queue
 		int tilesToPlace = (int)(SIZE * SIZE * MID_ELEVATION_PERCENT);
-		Debug.Log(tilesToPlace);
 		int placedTiles = 0;
 		Vector2 root1 = new Vector2(Random.Range(0, SIZE), Random.Range(0, SIZE));
 		Vector2 root2 = new Vector2(Random.Range(0, SIZE), Random.Range(0, SIZE));
@@ -89,7 +92,49 @@ public class BoardManager : MonoBehaviour {
 				}
 			}
 		}
-		Debug.Log("Placed: " + placedTiles);
+
+		// Now place the high elevation tiles starting at the same roots
+		openList.Clear();
+		openList.Enqueue(root1);
+		openList.Enqueue(root2);
+		openList.Enqueue(root3);
+		tilesToPlace = (int)(SIZE * SIZE * HIGH_ELEVATION_PERCENT);
+		placedTiles = 0;
+		while(placedTiles < tilesToPlace && openList.Count > 0) {
+			// Pop off the queue and add make the tile high-elevation
+			Vector2 currentTile = openList.Dequeue();
+			int curX = (int)currentTile.x;
+			int curY = (int)currentTile.y;
+			if (boardArray[curX, curY] == ElevationType.High) continue;
+			boardArray[curX, curY] = ElevationType.High;
+			placedTiles++;
+
+			// Add neighbors to Queue if they aren't high with a percent chance
+			// Adding the down neighbor
+			if (curY > 0 && boardArray[curX, curY - 1] != ElevationType.High) {
+				if (Random.value < HIGH_EXPANSION_CHANCE) {
+					openList.Enqueue(new Vector2(curX, curY - 1));
+				}
+			}
+			// Adding the left neighbor
+			if (curX > 0 && boardArray[curX - 1, curY] != ElevationType.High) {
+				if (Random.value < HIGH_EXPANSION_CHANCE) {
+					openList.Enqueue(new Vector2(curX - 1, curY));
+				}
+			}
+			// Adding the top neighbor
+			if (curY < SIZE - 1 && boardArray[curX, curY + 1] != ElevationType.High) {
+				if (Random.value < HIGH_EXPANSION_CHANCE) {
+					openList.Enqueue(new Vector2(curX, curY + 1));
+				}
+			}
+			// Adding the right neighbor
+			if (curX < SIZE - 1 && boardArray[curX + 1, curY] != ElevationType.High) {
+				if (Random.value < HIGH_EXPANSION_CHANCE) {
+					openList.Enqueue(new Vector2(curX + 1, curY));
+				}
+			}
+		}
 	}
 	
   // Uses the randomly generaed boardArray to place random tiles of the correct type
@@ -127,7 +172,9 @@ public class BoardManager : MonoBehaviour {
 
 	// To be called by the game manager, randomly makes the board
 	// and instantiates the tiles in their place
-	public void createScene() {
+	public void createScene(bool useSeed, int seed) {
+		if (useSeed) Random.InitState(seed);
+
 		setupBoard();
 		createBoard();
 	}

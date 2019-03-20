@@ -14,7 +14,7 @@ public class GameManager : MonoBehaviour {
 
   // Initializes the game
 	private void initGame() {
-		boardScript.createScene();
+		boardScript.createScene(false, 1234);
 	}
 	
 	// Update is called once per frame
