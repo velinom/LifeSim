@@ -348,6 +348,26 @@ Prefab:
       value: 
       objectReference: {fileID: 1928187422901118, guid: d2a9a94a726853545a83e816cad1be33,
         type: 2}
+    - target: {fileID: 114177822606438078, guid: 4f8cc3e8a55843543954c61d9c458317,
+        type: 2}
+      propertyPath: MIN_PONDS
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 114177822606438078, guid: 4f8cc3e8a55843543954c61d9c458317,
+        type: 2}
+      propertyPath: MAX_PONDS
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 114177822606438078, guid: 4f8cc3e8a55843543954c61d9c458317,
+        type: 2}
+      propertyPath: WATER_PERCENT
+      value: 0.15
+      objectReference: {fileID: 0}
+    - target: {fileID: 114177822606438078, guid: 4f8cc3e8a55843543954c61d9c458317,
+        type: 2}
+      propertyPath: WATER_EXPANSION_CHANCE
+      value: 0.75
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 4f8cc3e8a55843543954c61d9c458317, type: 2}
   m_IsPrefabParent: 0

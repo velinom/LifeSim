@@ -26,6 +26,8 @@ public class BoardManager : MonoBehaviour {
 	public double MID_EXPANSION_CHANCE;
 	public double HIGH_ELEVATION_PERCENT;
 	public double HIGH_EXPANSION_CHANCE;
+	public double WATER_PERCENT;
+	public double WATER_EXPANSION_CHANCE;
 
 	// Floor tiles that are passed in through Unity
 	public GameObject[] LOW_ELEVATION_TILES;
@@ -142,6 +144,58 @@ public class BoardManager : MonoBehaviour {
 			// Adding the right neighbor
 			if (curX < SIZE - 1 && boardArray[curX + 1, curY] != TileType.High) {
 				if (Random.value < HIGH_EXPANSION_CHANCE) {
+					openList.Enqueue(new Vector2(curX + 1, curY));
+				}
+			}
+		}
+
+		// Finally place the water tiles
+		int waterRoots = Random.Range(MIN_PONDS, MAX_PONDS);
+		tilesToPlace = (int)(SIZE * SIZE * WATER_PERCENT);
+		placedTiles = 0;
+		openList.Clear();
+		for (int i = 0; i < waterRoots; i++) {
+			Vector2 waterRoot = new Vector2(0, 0);
+			bool validRoot = false;
+			while (!validRoot) {
+				waterRoot = new Vector2(Random.Range(0, SIZE), Random.Range(0, SIZE));
+				validRoot = boardArray[(int)waterRoot.x, (int)waterRoot.y] != TileType.High;
+			}
+			openList.Enqueue(waterRoot);
+		}
+
+		// In a loop, place tiles until queue is empty or we have reached tilesToPlace
+		while (placedTiles < tilesToPlace && openList.Count > 0) {
+			// Pop off the queue and add make the tile med-elevation
+			Vector2 currentTile = openList.Dequeue();
+			int curX = (int)currentTile.x;
+			int curY = (int)currentTile.y;
+			if (boardArray[curX, curY] == TileType.Water) continue;
+			boardArray[curX, curY] = TileType.Water;
+			placedTiles++;
+
+			// Add neighbors to Queue if they aren't mid with a percent chance
+			// Adding the down neighbor
+			if (curY > 0 && boardArray[curX, curY - 1] != TileType.Water) {
+				if (Random.value < WATER_EXPANSION_CHANCE) {
+					openList.Enqueue(new Vector2(curX, curY - 1));
+				}
+			}
+			// Adding the left neighbor
+			if (curX > 0 && boardArray[curX - 1, curY] != TileType.Water) {
+				if (Random.value < WATER_EXPANSION_CHANCE) {
+					openList.Enqueue(new Vector2(curX - 1, curY));
+				}
+			}
+			// Adding the top neighbor
+			if (curY < SIZE - 1 && boardArray[curX, curY + 1] != TileType.Water) {
+				if (Random.value < WATER_EXPANSION_CHANCE) {
+					openList.Enqueue(new Vector2(curX, curY + 1));
+				}
+			}
+			// Adding the right neighbor
+			if (curX < SIZE - 1 && boardArray[curX + 1, curY] != TileType.Water) {
+				if (Random.value < WATER_EXPANSION_CHANCE) {
 					openList.Enqueue(new Vector2(curX + 1, curY));
 				}
 			}
