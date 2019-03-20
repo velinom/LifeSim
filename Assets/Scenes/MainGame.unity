@@ -213,7 +213,10 @@ MonoBehaviour:
   MIN_Y: 3.5
   MAX_X: 54
   MAX_Y: 55.4
-  MOVE_SPEED: 8
+  MOVE_SPEED: 2
+  MAX_SIZE: 15
+  MIN_SIZE: 0
+  ZOOM_SPEED: 8
 --- !u!1 &1228320906
 GameObject:
   m_ObjectHideFlags: 0
