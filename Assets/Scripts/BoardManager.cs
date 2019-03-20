@@ -9,14 +9,14 @@ public class BoardManager : MonoBehaviour {
 	public int SIZE = 50;
 
 	// In hundreds of px for use with unity placing.
-	public float CELL_SIZE = 1.2f;
+	public float CELL_SIZE;
 
 	// For the random generation, percentage that each tile should take up
 	// and the chance of expanding any given cell on the front
-	public double MID_ELEVATION_PERCENT = 0.4;
-	public double MID_EXPANSION_CHANCE = 0.5;
-	public double HIGH_ELEVATION_PERCENT = 0.15;
-	public double HIGH_EXPANSION_CHANCE = 0.4;
+	public double MID_ELEVATION_PERCENT;
+	public double MID_EXPANSION_CHANCE;
+	public double HIGH_ELEVATION_PERCENT;
+	public double HIGH_EXPANSION_CHANCE;
 
 	// Floor tiles that are passed in through Unity
 	public GameObject[] LOW_ELEVATION_TILES;
