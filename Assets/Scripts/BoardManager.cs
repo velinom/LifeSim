@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
+// Procedurally generates and renders the game board (Three different elevations)
 public class BoardManager : MonoBehaviour {
 
 	// Size of the game board, set to public so they can be modified in Unity
@@ -10,6 +11,10 @@ public class BoardManager : MonoBehaviour {
 
 	// In hundreds of px for use with unity placing.
 	public float CELL_SIZE;
+
+	// Min and max number of root hill nodes to expand
+	public int MIN_ROOTS;
+	public int MAX_ROOTS;
 
 	// For the random generation, percentage that each tile should take up
 	// and the chance of expanding any given cell on the front
@@ -45,16 +50,17 @@ public class BoardManager : MonoBehaviour {
 		}
 
 		// Now place the middle tiles, start by calculating how many to place and
-		// adding three seed tiles to the queue
+		// adding a random range of root tiles to the queue
 		int tilesToPlace = (int)(SIZE * SIZE * MID_ELEVATION_PERCENT);
 		int placedTiles = 0;
-		Vector2 root1 = new Vector2(Random.Range(0, SIZE), Random.Range(0, SIZE));
-		Vector2 root2 = new Vector2(Random.Range(0, SIZE), Random.Range(0, SIZE));
-		Vector2 root3 = new Vector2(Random.Range(0, SIZE), Random.Range(0, SIZE));
+		int numberOfRoots = Random.Range(MIN_ROOTS, MAX_ROOTS);
+		List<Vector2> roots = new List<Vector2>();
 		Queue<Vector2> openList = new Queue<Vector2>();
-		openList.Enqueue(root1);
-		openList.Enqueue(root2);
-		openList.Enqueue(root3);
+		for (int i = 0; i < numberOfRoots; i++) {
+			Vector2 ithRoot = new Vector2(Random.Range(0, SIZE), Random.Range(0, SIZE));
+			roots.Add(ithRoot);
+			openList.Enqueue(ithRoot);
+		}
 
 		// In a loop, place tiles until queue is empty or we have reached tilesToPlace
 		while (placedTiles < tilesToPlace && openList.Count > 0) {
@@ -95,9 +101,9 @@ public class BoardManager : MonoBehaviour {
 
 		// Now place the high elevation tiles starting at the same roots
 		openList.Clear();
-		openList.Enqueue(root1);
-		openList.Enqueue(root2);
-		openList.Enqueue(root3);
+		foreach (Vector2 root in roots) {
+			openList.Enqueue(root);
+		}
 		tilesToPlace = (int)(SIZE * SIZE * HIGH_ELEVATION_PERCENT);
 		placedTiles = 0;
 		while(placedTiles < tilesToPlace && openList.Count > 0) {
