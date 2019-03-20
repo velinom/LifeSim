@@ -226,6 +226,11 @@ Prefab:
     m_Modifications:
     - target: {fileID: 114177822606438078, guid: 4f8cc3e8a55843543954c61d9c458317,
         type: 2}
+      propertyPath: WATER_TILES.Array.size
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 114177822606438078, guid: 4f8cc3e8a55843543954c61d9c458317,
+        type: 2}
       propertyPath: HIGH_ELEVATION_TILES.Array.size
       value: 7
       objectReference: {fileID: 0}
@@ -313,6 +318,36 @@ Prefab:
       propertyPath: MAX_ROOTS
       value: 5
       objectReference: {fileID: 0}
+    - target: {fileID: 114177822606438078, guid: 4f8cc3e8a55843543954c61d9c458317,
+        type: 2}
+      propertyPath: WATER_TILES.Array.data[0]
+      value: 
+      objectReference: {fileID: 1807992019626814, guid: 5664a41efe5915d43aefae0fd985cfd2,
+        type: 2}
+    - target: {fileID: 114177822606438078, guid: 4f8cc3e8a55843543954c61d9c458317,
+        type: 2}
+      propertyPath: WATER_TILES.Array.data[1]
+      value: 
+      objectReference: {fileID: 1928517013471302, guid: fa19e9e47f8c70842b6753dd565d0f4d,
+        type: 2}
+    - target: {fileID: 114177822606438078, guid: 4f8cc3e8a55843543954c61d9c458317,
+        type: 2}
+      propertyPath: WATER_TILES.Array.data[2]
+      value: 
+      objectReference: {fileID: 1723492592092804, guid: 885421f5cdcdc2f4389c1fd6d5c53915,
+        type: 2}
+    - target: {fileID: 114177822606438078, guid: 4f8cc3e8a55843543954c61d9c458317,
+        type: 2}
+      propertyPath: WATER_TILES.Array.data[3]
+      value: 
+      objectReference: {fileID: 1894090989569874, guid: 4fe3dcc3cba5af244bac370922750dc9,
+        type: 2}
+    - target: {fileID: 114177822606438078, guid: 4f8cc3e8a55843543954c61d9c458317,
+        type: 2}
+      propertyPath: WATER_TILES.Array.data[4]
+      value: 
+      objectReference: {fileID: 1928187422901118, guid: d2a9a94a726853545a83e816cad1be33,
+        type: 2}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 4f8cc3e8a55843543954c61d9c458317, type: 2}
   m_IsPrefabParent: 0

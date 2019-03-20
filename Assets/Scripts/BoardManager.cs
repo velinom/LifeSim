@@ -16,6 +16,10 @@ public class BoardManager : MonoBehaviour {
 	public int MIN_ROOTS;
 	public int MAX_ROOTS;
 
+	// Min and max number of ponds to spawn in the map
+	public int MIN_PONDS;
+	public int MAX_PONDS;
+
 	// For the random generation, percentage that each tile should take up
 	// and the chance of expanding any given cell on the front
 	public double MID_ELEVATION_PERCENT;
@@ -27,25 +31,26 @@ public class BoardManager : MonoBehaviour {
 	public GameObject[] LOW_ELEVATION_TILES;
 	public GameObject[] MID_ELEVATION_TILES;
 	public GameObject[] HIGH_ELEVATION_TILES;
+	public GameObject[] WATER_TILES;
 
 	// The three types of elevation tiles
-	private enum ElevationType { Low, Medium, High }
+	private enum TileType { Low, Medium, High, Water }
 
 	// Holds all the objects spawned into the board
 	private Transform boardHolder;
 
 	// 2D array of tyle-types that gets randomly generated
-	private ElevationType[, ] boardArray;
+	private TileType[, ] boardArray;
 
   // Initializes the boardArray using random methods to set the elevation
 	// type at each position on the board.
 	private void setupBoard() {
-		boardArray = new ElevationType[SIZE, SIZE];
+		boardArray = new TileType[SIZE, SIZE];
 
 		// Begin by making every tile Low elevation
 		for (int x = 0; x < SIZE; x++) {
 			for (int y = 0; y < SIZE; y++) {
-				boardArray[x, y] = ElevationType.Low;
+				boardArray[x, y] = TileType.Low;
 			}
 		}
 
@@ -68,31 +73,31 @@ public class BoardManager : MonoBehaviour {
 			Vector2 currentTile = openList.Dequeue();
 			int curX = (int)currentTile.x;
 			int curY = (int)currentTile.y;
-			if (boardArray[curX, curY] == ElevationType.Medium) continue;
-			boardArray[curX, curY] = ElevationType.Medium;
+			if (boardArray[curX, curY] == TileType.Medium) continue;
+			boardArray[curX, curY] = TileType.Medium;
 			placedTiles++;
 
 			// Add neighbors to Queue if they aren't mid with a percent chance
 			// Adding the down neighbor
-			if (curY > 0 && boardArray[curX, curY - 1] != ElevationType.Medium) {
+			if (curY > 0 && boardArray[curX, curY - 1] != TileType.Medium) {
 				if (Random.value < MID_EXPANSION_CHANCE) {
 					openList.Enqueue(new Vector2(curX, curY - 1));
 				}
 			}
 			// Adding the left neighbor
-			if (curX > 0 && boardArray[curX - 1, curY] != ElevationType.Medium) {
+			if (curX > 0 && boardArray[curX - 1, curY] != TileType.Medium) {
 				if (Random.value < MID_EXPANSION_CHANCE) {
 					openList.Enqueue(new Vector2(curX - 1, curY));
 				}
 			}
 			// Adding the top neighbor
-			if (curY < SIZE - 1 && boardArray[curX, curY + 1] != ElevationType.Medium) {
+			if (curY < SIZE - 1 && boardArray[curX, curY + 1] != TileType.Medium) {
 				if (Random.value < MID_EXPANSION_CHANCE) {
 					openList.Enqueue(new Vector2(curX, curY + 1));
 				}
 			}
 			// Adding the right neighbor
-			if (curX < SIZE - 1 && boardArray[curX + 1, curY] != ElevationType.Medium) {
+			if (curX < SIZE - 1 && boardArray[curX + 1, curY] != TileType.Medium) {
 				if (Random.value < MID_EXPANSION_CHANCE) {
 					openList.Enqueue(new Vector2(curX + 1, curY));
 				}
@@ -111,31 +116,31 @@ public class BoardManager : MonoBehaviour {
 			Vector2 currentTile = openList.Dequeue();
 			int curX = (int)currentTile.x;
 			int curY = (int)currentTile.y;
-			if (boardArray[curX, curY] == ElevationType.High) continue;
-			boardArray[curX, curY] = ElevationType.High;
+			if (boardArray[curX, curY] == TileType.High) continue;
+			boardArray[curX, curY] = TileType.High;
 			placedTiles++;
 
 			// Add neighbors to Queue if they aren't high with a percent chance
 			// Adding the down neighbor
-			if (curY > 0 && boardArray[curX, curY - 1] != ElevationType.High) {
+			if (curY > 0 && boardArray[curX, curY - 1] != TileType.High) {
 				if (Random.value < HIGH_EXPANSION_CHANCE) {
 					openList.Enqueue(new Vector2(curX, curY - 1));
 				}
 			}
 			// Adding the left neighbor
-			if (curX > 0 && boardArray[curX - 1, curY] != ElevationType.High) {
+			if (curX > 0 && boardArray[curX - 1, curY] != TileType.High) {
 				if (Random.value < HIGH_EXPANSION_CHANCE) {
 					openList.Enqueue(new Vector2(curX - 1, curY));
 				}
 			}
 			// Adding the top neighbor
-			if (curY < SIZE - 1 && boardArray[curX, curY + 1] != ElevationType.High) {
+			if (curY < SIZE - 1 && boardArray[curX, curY + 1] != TileType.High) {
 				if (Random.value < HIGH_EXPANSION_CHANCE) {
 					openList.Enqueue(new Vector2(curX, curY + 1));
 				}
 			}
 			// Adding the right neighbor
-			if (curX < SIZE - 1 && boardArray[curX + 1, curY] != ElevationType.High) {
+			if (curX < SIZE - 1 && boardArray[curX + 1, curY] != TileType.High) {
 				if (Random.value < HIGH_EXPANSION_CHANCE) {
 					openList.Enqueue(new Vector2(curX + 1, curY));
 				}
@@ -151,19 +156,23 @@ public class BoardManager : MonoBehaviour {
 		for (int x = 0; x < SIZE; x++) {
 			for (int y = 0; y < SIZE; y++) {
 				GameObject toInstantiate = null;
-				ElevationType currentType = boardArray[x, y];
+				TileType currentType = boardArray[x, y];
 
 				switch(currentType) {
-					case ElevationType.Low: {
+					case TileType.Low: {
             toInstantiate = LOW_ELEVATION_TILES[Random.Range(0, LOW_ELEVATION_TILES.Length)];
 						break;
 					}
-					case ElevationType.Medium: {
+					case TileType.Medium: {
 						toInstantiate = MID_ELEVATION_TILES[Random.Range(0, MID_ELEVATION_TILES.Length)];
 						break;
 					}
-					case ElevationType.High: {
+					case TileType.High: {
 						toInstantiate = HIGH_ELEVATION_TILES[Random.Range(0, HIGH_ELEVATION_TILES.Length)];
+						break;
+					}
+					case TileType.Water: {
+						toInstantiate = WATER_TILES[Random.Range(0, WATER_TILES.Length)];
 						break;
 					}
 					default: break;
