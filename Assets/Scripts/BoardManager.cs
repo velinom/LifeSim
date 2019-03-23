@@ -56,146 +56,81 @@ public class BoardManager : MonoBehaviour {
 			}
 		}
 
-		// Now place the middle tiles, start by calculating how many to place and
-		// adding a random range of root tiles to the queue
-		int tilesToPlace = (int)(SIZE * SIZE * MID_ELEVATION_PERCENT);
-		int placedTiles = 0;
+		// Now place the middle tiles, calculate a number of random roots from the 
+		// set range to use
 		int numberOfRoots = Random.Range(MIN_ROOTS, MAX_ROOTS);
 		List<Vector2> roots = new List<Vector2>();
-		Queue<Vector2> openList = new Queue<Vector2>();
 		for (int i = 0; i < numberOfRoots; i++) {
 			Vector2 ithRoot = new Vector2(Random.Range(0, SIZE), Random.Range(0, SIZE));
 			roots.Add(ithRoot);
-			openList.Enqueue(ithRoot);
 		}
-
-		// In a loop, place tiles until queue is empty or we have reached tilesToPlace
-		while (placedTiles < tilesToPlace && openList.Count > 0) {
-			// Pop off the queue and add make the tile med-elevation
-			Vector2 currentTile = openList.Dequeue();
-			int curX = (int)currentTile.x;
-			int curY = (int)currentTile.y;
-			if (boardArray[curX, curY] == TileType.Medium) continue;
-			boardArray[curX, curY] = TileType.Medium;
-			placedTiles++;
-
-			// Add neighbors to Queue if they aren't mid with a percent chance
-			// Adding the down neighbor
-			if (curY > 0 && boardArray[curX, curY - 1] != TileType.Medium) {
-				if (Random.value < MID_EXPANSION_CHANCE) {
-					openList.Enqueue(new Vector2(curX, curY - 1));
-				}
-			}
-			// Adding the left neighbor
-			if (curX > 0 && boardArray[curX - 1, curY] != TileType.Medium) {
-				if (Random.value < MID_EXPANSION_CHANCE) {
-					openList.Enqueue(new Vector2(curX - 1, curY));
-				}
-			}
-			// Adding the top neighbor
-			if (curY < SIZE - 1 && boardArray[curX, curY + 1] != TileType.Medium) {
-				if (Random.value < MID_EXPANSION_CHANCE) {
-					openList.Enqueue(new Vector2(curX, curY + 1));
-				}
-			}
-			// Adding the right neighbor
-			if (curX < SIZE - 1 && boardArray[curX + 1, curY] != TileType.Medium) {
-				if (Random.value < MID_EXPANSION_CHANCE) {
-					openList.Enqueue(new Vector2(curX + 1, curY));
-				}
-			}
-		}
+		propagateRootTiles(roots, MID_ELEVATION_PERCENT, MID_EXPANSION_CHANCE, TileType.Medium);
 
 		// Now place the high elevation tiles starting at the same roots
-		openList.Clear();
-		foreach (Vector2 root in roots) {
-			openList.Enqueue(root);
-		}
-		tilesToPlace = (int)(SIZE * SIZE * HIGH_ELEVATION_PERCENT);
-		placedTiles = 0;
-		while(placedTiles < tilesToPlace && openList.Count > 0) {
-			// Pop off the queue and add make the tile high-elevation
-			Vector2 currentTile = openList.Dequeue();
-			int curX = (int)currentTile.x;
-			int curY = (int)currentTile.y;
-			if (boardArray[curX, curY] == TileType.High) continue;
-			boardArray[curX, curY] = TileType.High;
-			placedTiles++;
-
-			// Add neighbors to Queue if they aren't high with a percent chance
-			// Adding the down neighbor
-			if (curY > 0 && boardArray[curX, curY - 1] != TileType.High) {
-				if (Random.value < HIGH_EXPANSION_CHANCE) {
-					openList.Enqueue(new Vector2(curX, curY - 1));
-				}
-			}
-			// Adding the left neighbor
-			if (curX > 0 && boardArray[curX - 1, curY] != TileType.High) {
-				if (Random.value < HIGH_EXPANSION_CHANCE) {
-					openList.Enqueue(new Vector2(curX - 1, curY));
-				}
-			}
-			// Adding the top neighbor
-			if (curY < SIZE - 1 && boardArray[curX, curY + 1] != TileType.High) {
-				if (Random.value < HIGH_EXPANSION_CHANCE) {
-					openList.Enqueue(new Vector2(curX, curY + 1));
-				}
-			}
-			// Adding the right neighbor
-			if (curX < SIZE - 1 && boardArray[curX + 1, curY] != TileType.High) {
-				if (Random.value < HIGH_EXPANSION_CHANCE) {
-					openList.Enqueue(new Vector2(curX + 1, curY));
-				}
-			}
-		}
+		propagateRootTiles(roots, HIGH_ELEVATION_PERCENT, HIGH_EXPANSION_CHANCE, TileType.High);
 
 		// Finally place the water tiles
-		int waterRoots = Random.Range(MIN_PONDS, MAX_PONDS);
-		tilesToPlace = (int)(SIZE * SIZE * WATER_PERCENT);
-		placedTiles = 0;
-		openList.Clear();
-		for (int i = 0; i < waterRoots; i++) {
+		roots = new List<Vector2>();
+		int numWaterRoots = Random.Range(MIN_PONDS, MAX_PONDS);
+		for (int i = 0; i < numWaterRoots; i++) {
 			Vector2 waterRoot = new Vector2(0, 0);
 			bool validRoot = false;
 			while (!validRoot) {
 				waterRoot = new Vector2(Random.Range(0, SIZE), Random.Range(0, SIZE));
 				validRoot = boardArray[(int)waterRoot.x, (int)waterRoot.y] != TileType.High;
 			}
-			openList.Enqueue(waterRoot);
+			roots.Add(waterRoot);
+		}
+		propagateRootTiles(roots, WATER_PERCENT, WATER_EXPANSION_CHANCE, TileType.Water);
+	}
+
+	// Takes in an array of root tiles, a percent of the board to cover, an 
+	// expansion chance for any given tile, and the type type
+	private void propagateRootTiles(List<Vector2> roots, double coveragePercent,
+	                                double expansionChance, TileType type) {
+		// Start by calculating how many tiles of this type to place
+		int tilesToPlace = (int)(SIZE * SIZE * coveragePercent);
+		int placedTiles = 0;
+
+		// Open list of tiles to set and then propogate, init with roots
+		Queue<Vector2> openList = new Queue<Vector2>();
+		foreach (Vector2 root in roots ) {
+			openList.Enqueue(root);
 		}
 
-		// In a loop, place tiles until queue is empty or we have reached tilesToPlace
+		// In a loop, place tiles (starting at the roots) until queue is empty
+		// or we have reached tilesToPlace
 		while (placedTiles < tilesToPlace && openList.Count > 0) {
 			// Pop off the queue and add make the tile med-elevation
 			Vector2 currentTile = openList.Dequeue();
 			int curX = (int)currentTile.x;
 			int curY = (int)currentTile.y;
-			if (boardArray[curX, curY] == TileType.Water) continue;
-			boardArray[curX, curY] = TileType.Water;
+			if (boardArray[curX, curY] == type) continue; // don't set tiles twice
+			boardArray[curX, curY] = type;
 			placedTiles++;
 
-			// Add neighbors to Queue if they aren't mid with a percent chance
+			// Add neighbors to Queue if they aren't the same type
 			// Adding the down neighbor
-			if (curY > 0 && boardArray[curX, curY - 1] != TileType.Water) {
-				if (Random.value < WATER_EXPANSION_CHANCE) {
+			if (curY > 0 && boardArray[curX, curY - 1] != type) {
+				if (Random.value < expansionChance) {
 					openList.Enqueue(new Vector2(curX, curY - 1));
 				}
 			}
 			// Adding the left neighbor
-			if (curX > 0 && boardArray[curX - 1, curY] != TileType.Water) {
-				if (Random.value < WATER_EXPANSION_CHANCE) {
+			if (curX > 0 && boardArray[curX - 1, curY] != type) {
+				if (Random.value < expansionChance) {
 					openList.Enqueue(new Vector2(curX - 1, curY));
 				}
 			}
 			// Adding the top neighbor
-			if (curY < SIZE - 1 && boardArray[curX, curY + 1] != TileType.Water) {
-				if (Random.value < WATER_EXPANSION_CHANCE) {
+			if (curY < SIZE - 1 && boardArray[curX, curY + 1] != type) {
+				if (Random.value < expansionChance) {
 					openList.Enqueue(new Vector2(curX, curY + 1));
 				}
 			}
 			// Adding the right neighbor
-			if (curX < SIZE - 1 && boardArray[curX + 1, curY] != TileType.Water) {
-				if (Random.value < WATER_EXPANSION_CHANCE) {
+			if (curX < SIZE - 1 && boardArray[curX + 1, curY] != type) {
+				if (Random.value < expansionChance) {
 					openList.Enqueue(new Vector2(curX + 1, curY));
 				}
 			}
