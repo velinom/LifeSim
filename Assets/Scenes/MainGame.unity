@@ -217,6 +217,28 @@ MonoBehaviour:
   MAX_SIZE: 15
   MIN_SIZE: 4
   ZOOM_SPEED: 8
+--- !u!1 &1228320906 stripped
+GameObject:
+  m_PrefabParentObject: {fileID: 1572485264019824, guid: 4f8cc3e8a55843543954c61d9c458317,
+    type: 2}
+  m_PrefabInternal: {fileID: 1508797784}
+--- !u!95 &1228320907
+Animator:
+  serializedVersion: 3
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1228320906}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 3ca03c79f265f5e42adccd648938ea7c, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
 --- !u!1001 &1508797784
 Prefab:
   m_ObjectHideFlags: 0
@@ -224,6 +246,11 @@ Prefab:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 114177822606438078, guid: 4f8cc3e8a55843543954c61d9c458317,
+        type: 2}
+      propertyPath: TREES.Array.size
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 114177822606438078, guid: 4f8cc3e8a55843543954c61d9c458317,
         type: 2}
       propertyPath: WATER_TILES.Array.size
@@ -368,6 +395,12 @@ Prefab:
       propertyPath: WATER_EXPANSION_CHANCE
       value: 0.75
       objectReference: {fileID: 0}
+    - target: {fileID: 114177822606438078, guid: 4f8cc3e8a55843543954c61d9c458317,
+        type: 2}
+      propertyPath: TREES.Array.data[0]
+      value: 
+      objectReference: {fileID: 1955727901029974, guid: b25b65eda2841db4c948bff674fe6835,
+        type: 2}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 4f8cc3e8a55843543954c61d9c458317, type: 2}
   m_IsPrefabParent: 0

@@ -34,6 +34,7 @@ public class BoardManager : MonoBehaviour {
 	public GameObject[] MID_ELEVATION_TILES;
 	public GameObject[] HIGH_ELEVATION_TILES;
 	public GameObject[] WATER_TILES;
+	public GameObject[] TREES;
 
 	// The three types of elevation tiles
 	private enum TileType { Low, Medium, High, Water }
@@ -167,11 +168,17 @@ public class BoardManager : MonoBehaviour {
 					default: break;
 				}
 
+
+				// Yo it works
 				GameObject instance = Instantiate(
 					toInstantiate, new Vector3(x * CELL_SIZE, y * CELL_SIZE, 0f), Quaternion.identity) as GameObject;
 				instance.transform.SetParent(boardHolder);
 			}
 		}
+
+		GameObject tree = Instantiate(
+			TREES[0], new Vector3(1.2f, 1.2f, 0), Quaternion.identity) as GameObject;
+		tree.transform.SetParent(boardHolder);
 	}
 
 	// To be called by the game manager, randomly makes the board

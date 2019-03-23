@@ -6,6 +6,7 @@ TagManager:
   tags:
   - HighElevation
   - Water
+  - Tree
   layers:
   - Default
   - TransparentFX
@@ -45,4 +46,7 @@ TagManager:
     locked: 0
   - name: Floor
     uniqueID: 3284206673
+    locked: 0
+  - name: Flora
+    uniqueID: 540328723
     locked: 0
