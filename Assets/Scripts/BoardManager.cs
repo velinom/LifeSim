@@ -102,11 +102,17 @@ public class BoardManager : MonoBehaviour {
 		// In a loop, place tiles (starting at the roots) until queue is empty
 		// or we have reached tilesToPlace
 		while (placedTiles < tilesToPlace && openList.Count > 0) {
-			// Pop off the queue and add make the tile med-elevation
+			// Pop off the queue
 			Vector2 currentTile = openList.Dequeue();
 			int curX = (int)currentTile.x;
 			int curY = (int)currentTile.y;
-			if (boardArray[curX, curY] == type) continue; // don't set tiles twice
+
+			// Don't set tiles twice
+			if (boardArray[curX, curY] == type) continue;
+			// Don't let water enter high elevation
+			if (type == TileType.Water && boardArray[curX, curY] == TileType.High) continue;
+
+			// Set the tile to the desired type
 			boardArray[curX, curY] = type;
 			placedTiles++;
 
@@ -176,9 +182,12 @@ public class BoardManager : MonoBehaviour {
 			}
 		}
 
-		GameObject tree = Instantiate(
+		GameObject tree1 = Instantiate(
 			TREES[0], new Vector3(1.2f, 1.2f, 0), Quaternion.identity) as GameObject;
-		tree.transform.SetParent(boardHolder);
+		tree1.transform.SetParent(boardHolder);
+		GameObject tree2 = Instantiate(
+			TREES[1], new Vector3(2.4f, 2.4f, 0), Quaternion.identity) as GameObject;
+		tree2.transform.SetParent(boardHolder);
 	}
 
 	// To be called by the game manager, randomly makes the board
