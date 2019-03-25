@@ -13,12 +13,10 @@ public class BoardManager : MonoBehaviour {
 	public float CELL_SIZE;
 
 	// Min and max number of root hill nodes to expand
-	public int MIN_ROOTS;
-	public int MAX_ROOTS;
+	public Count ROOTS;
 
 	// Min and max number of ponds to spawn in the map
-	public int MIN_PONDS;
-	public int MAX_PONDS;
+	public Count NUM_PONDS;
 
 	// For the random generation, percentage that each tile should take up
 	// and the chance of expanding any given cell on the front
@@ -59,7 +57,7 @@ public class BoardManager : MonoBehaviour {
 
 		// Now place the middle tiles, calculate a number of random roots from the 
 		// set range to use
-		int numberOfRoots = Random.Range(MIN_ROOTS, MAX_ROOTS);
+		int numberOfRoots = Random.Range(ROOTS.minimum, ROOTS.maximum);
 		List<Vector2> roots = new List<Vector2>();
 		for (int i = 0; i < numberOfRoots; i++) {
 			Vector2 ithRoot = new Vector2(Random.Range(0, SIZE), Random.Range(0, SIZE));
@@ -72,7 +70,7 @@ public class BoardManager : MonoBehaviour {
 
 		// Finally place the water tiles
 		roots = new List<Vector2>();
-		int numWaterRoots = Random.Range(MIN_PONDS, MAX_PONDS);
+		int numWaterRoots = Random.Range(NUM_PONDS.minimum, NUM_PONDS.maximum);
 		for (int i = 0; i < numWaterRoots; i++) {
 			Vector2 waterRoot = new Vector2(0, 0);
 			bool validRoot = false;
