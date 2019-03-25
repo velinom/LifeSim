@@ -12,11 +12,10 @@ public class BoardManager : MonoBehaviour {
 	// In hundreds of px for use with unity placing.
 	public float CELL_SIZE;
 
-	// Min and max number of root hill nodes to expand
-	public Count ROOTS;
-
-	// Min and max number of ponds to spawn in the map
-	public Count NUM_PONDS;
+	// Min and max number of different things to spawn in game
+	public Count NUM_HILLS;  // Number of hill root nodes to spawn
+	public Count NUM_PONDS;  // Number of water root nodes to spawn
+	public Count NUM_TREES;
 
 	// For the random generation, percentage that each tile should take up
 	// and the chance of expanding any given cell on the front
@@ -33,15 +32,23 @@ public class BoardManager : MonoBehaviour {
 	public GameObject[] HIGH_ELEVATION_TILES;
 	public GameObject[] WATER_TILES;
 	public GameObject[] TREES;
+	public GameObject[] BUSHES;
 
-	// The three types of elevation tiles
+	// The three types of elevation tiles and water
 	private enum TileType { Low, Medium, High, Water }
 
-	// Holds all the objects spawned into the board
+	// The different objects that can be spawned in the world
+	private enum Object { None, Tree, Bush }
+
+	// Parent objects that hold spawned children, keeps the object hierarchy neat
 	private Transform boardHolder;
+	private Transform foodHolder;
 
 	// 2D array of tyle-types that gets randomly generated
 	private TileType[, ] boardArray;
+
+	// 2D array of objects that get randomly placed on the board
+	private Object[, ] objectArray;
 
   // Initializes the boardArray using random methods to set the elevation
 	// type at each position on the board.
@@ -57,7 +64,7 @@ public class BoardManager : MonoBehaviour {
 
 		// Now place the middle tiles, calculate a number of random roots from the 
 		// set range to use
-		int numberOfRoots = Random.Range(ROOTS.minimum, ROOTS.maximum);
+		int numberOfRoots = Random.Range(NUM_HILLS.minimum, NUM_HILLS.maximum);
 		List<Vector2> roots = new List<Vector2>();
 		for (int i = 0; i < numberOfRoots; i++) {
 			Vector2 ithRoot = new Vector2(Random.Range(0, SIZE), Random.Range(0, SIZE));
@@ -172,20 +179,79 @@ public class BoardManager : MonoBehaviour {
 					default: break;
 				}
 
-
-				// Yo it works
+				// Instantiate the right tyle object at the location
 				GameObject instance = Instantiate(
 					toInstantiate, new Vector3(x * CELL_SIZE, y * CELL_SIZE, 0f), Quaternion.identity) as GameObject;
 				instance.transform.SetParent(boardHolder);
 			}
 		}
+	}
 
-		GameObject tree1 = Instantiate(
-			TREES[0], new Vector3(1.2f, 1.2f, 0), Quaternion.identity) as GameObject;
-		tree1.transform.SetParent(boardHolder);
-		GameObject tree2 = Instantiate(
-			TREES[1], new Vector3(2.4f, 2.4f, 0), Quaternion.identity) as GameObject;
-		tree2.transform.SetParent(boardHolder);
+	// Populates the map with objects including bushes and trees for food
+	private void setupObjects() {
+		objectArray = new Object[SIZE, SIZE];
+
+		// Begin with trees which are food for birds
+		int numToSpawn = Random.Range(NUM_TREES.minimum, NUM_TREES.maximum);
+		List<TileType> allowedTiles = new List<TileType> { TileType.Low, TileType.Medium }; 
+		spawnObjectsAtRandom(Object.Tree, numToSpawn, allowedTiles);
+
+	}
+
+	// Spawns the given number of tiles at random, only placing them on allowed tiles
+	private void spawnObjectsAtRandom(Object type, int numToSpawn, List<TileType> allowed) {
+		while(numToSpawn > 0) {
+			bool placed = false;
+			while (!placed) {
+				int x = Random.Range(0, SIZE);
+				int y = Random.Range(0, SIZE);
+
+				// Begin by checking that there isn't an object there already
+				if (objectArray[x, y] != Object.None) continue;
+
+				// Make sure the the random location is allowed
+				if (!allowed.Contains(boardArray[x, y])) continue;
+
+				// If we have reached this point we will set the object in the array
+				objectArray[x, y] = type;
+				placed = true;
+			} 
+
+			numToSpawn--;
+		}
+	}
+
+	// Uses the generated object array to instantiate the corresponding game 
+	// objects in the scene
+	private void createObjects() {
+		foodHolder = new GameObject("Food").transform;
+
+		for (int x = 0; x < SIZE; x++) {
+			for (int y = 0; y < SIZE; y++) {
+				GameObject toInstantiate = null;
+				Object currentType = objectArray[x, y];
+
+				switch(currentType) {
+					case Object.Tree: {
+            toInstantiate = TREES[Random.Range(0, TREES.Length)];
+						break;
+					}
+					case Object.Bush: {
+						toInstantiate = BUSHES[Random.Range(0, BUSHES.Length)];
+						break;
+					}
+					case Object.None: break;
+					default: break;
+				}
+
+				// Instantiate the right tyle object at the location
+				if (toInstantiate != null) {
+					GameObject instance = Instantiate(
+						toInstantiate, new Vector3(x * CELL_SIZE, y * CELL_SIZE, 0f), Quaternion.identity) as GameObject;
+					instance.transform.SetParent(foodHolder);
+				}
+			}
+		}
 	}
 
 	// To be called by the game manager, randomly makes the board
@@ -195,5 +261,7 @@ public class BoardManager : MonoBehaviour {
 
 		setupBoard();
 		createBoard();
+		setupObjects();
+		createObjects();
 	}
 }

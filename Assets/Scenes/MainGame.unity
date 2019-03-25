@@ -427,6 +427,26 @@ Prefab:
       propertyPath: NUM_PONDS.maximum
       value: 6
       objectReference: {fileID: 0}
+    - target: {fileID: 114177822606438078, guid: 4f8cc3e8a55843543954c61d9c458317,
+        type: 2}
+      propertyPath: NUM_HILLS.minimum
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 114177822606438078, guid: 4f8cc3e8a55843543954c61d9c458317,
+        type: 2}
+      propertyPath: NUM_HILLS.maximum
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 114177822606438078, guid: 4f8cc3e8a55843543954c61d9c458317,
+        type: 2}
+      propertyPath: NUM_TREES.minimum
+      value: 40
+      objectReference: {fileID: 0}
+    - target: {fileID: 114177822606438078, guid: 4f8cc3e8a55843543954c61d9c458317,
+        type: 2}
+      propertyPath: NUM_TREES.maximum
+      value: 60
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 4f8cc3e8a55843543954c61d9c458317, type: 2}
   m_IsPrefabParent: 0
