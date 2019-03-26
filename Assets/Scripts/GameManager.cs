@@ -11,6 +11,10 @@ public class GameManager : MonoBehaviour {
 	// Used to procedurally generate the board
 	public BoardManager boardScript;
 
+	// SEED field that can be set by the player
+	private int seed;
+	private bool useSeed;
+
 	// Called when the GameManager is instantiated for the first time. Initialize values
 	// and sets up the singleton instance
 	void Awake () {
@@ -21,14 +25,19 @@ public class GameManager : MonoBehaviour {
 			Destroy(gameObject);
 
 		DontDestroyOnLoad(gameObject);
-
-		// Initialize values and start the game
-		boardScript = GetComponent<BoardManager>();
-		initGame();
 	}
 
   // Initializes the game
-	private void initGame() {
+	public void initGame() {
+		// Initialize values and start the game
+		boardScript = GetComponent<BoardManager>();
 		boardScript.createScene(false, 1234);
 	}
+
+	// Setters and getters for the seed info
+	public int getSeed() { return seed; }
+	public void setSeed(int s) { this.seed = s; }
+
+	public bool shouldUseSeed() { return useSeed; }
+	public void setUseSeed(bool use) { this.useSeed = use; }
 }

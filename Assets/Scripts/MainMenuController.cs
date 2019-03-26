@@ -28,4 +28,8 @@ public class MainMenuController : MonoBehaviour {
   public void onStartButtonClick() {
     SceneManager.LoadScene(1);
   }
+
+  public void onSeedFieldChanged() {
+    
+  }
 }
