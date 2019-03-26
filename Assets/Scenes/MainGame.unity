@@ -298,6 +298,26 @@ Prefab:
       propertyPath: m_RootOrder
       value: 2
       objectReference: {fileID: 0}
+    - target: {fileID: 114177822606438078, guid: 4f8cc3e8a55843543954c61d9c458317,
+        type: 2}
+      propertyPath: NUM_TREES.minimum
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 114177822606438078, guid: 4f8cc3e8a55843543954c61d9c458317,
+        type: 2}
+      propertyPath: NUM_TREES.maximum
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 114177822606438078, guid: 4f8cc3e8a55843543954c61d9c458317,
+        type: 2}
+      propertyPath: NUM_BUSHES.minimum
+      value: 18
+      objectReference: {fileID: 0}
+    - target: {fileID: 114177822606438078, guid: 4f8cc3e8a55843543954c61d9c458317,
+        type: 2}
+      propertyPath: NUM_BUSHES.maximum
+      value: 25
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 4f8cc3e8a55843543954c61d9c458317, type: 2}
   m_IsPrefabParent: 0

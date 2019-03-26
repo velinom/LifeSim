@@ -91,8 +91,11 @@ MonoBehaviour:
     minimum: 4
     maximum: 6
   NUM_TREES:
-    minimum: 40
-    maximum: 60
+    minimum: 15
+    maximum: 25
+  NUM_BUSHES:
+    minimum: 20
+    maximum: 30
   MID_ELEVATION_PERCENT: 0.5
   MID_EXPANSION_CHANCE: 0.65
   HIGH_ELEVATION_PERCENT: 0.15
@@ -138,4 +141,6 @@ MonoBehaviour:
   TREES:
   - {fileID: 1955727901029974, guid: b25b65eda2841db4c948bff674fe6835, type: 2}
   - {fileID: 1110009346056048, guid: 2cdf2818c1d44524290b068dd04deced, type: 2}
-  BUSHES: []
+  BUSHES:
+  - {fileID: 1237838532870990, guid: b5b15d47544beff4bb115fe4679656c0, type: 2}
+  - {fileID: 1750683537384876, guid: b5748b2fe19f5464193c1f5c2a2d5ea5, type: 2}

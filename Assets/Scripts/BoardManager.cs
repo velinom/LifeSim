@@ -16,6 +16,7 @@ public class BoardManager : MonoBehaviour {
 	public Count NUM_HILLS;  // Number of hill root nodes to spawn
 	public Count NUM_PONDS;  // Number of water root nodes to spawn
 	public Count NUM_TREES;
+	public Count NUM_BUSHES;
 
 	// For the random generation, percentage that each tile should take up
 	// and the chance of expanding any given cell on the front
@@ -192,9 +193,13 @@ public class BoardManager : MonoBehaviour {
 		objectArray = new Object[SIZE, SIZE];
 
 		// Begin with trees which are food for birds
-		int numToSpawn = Random.Range(NUM_TREES.minimum, NUM_TREES.maximum);
+		int numTrees = Random.Range(NUM_TREES.minimum, NUM_TREES.maximum);
 		List<TileType> allowedTiles = new List<TileType> { TileType.Low, TileType.Medium }; 
-		spawnObjectsAtRandom(Object.Tree, numToSpawn, allowedTiles);
+		spawnObjectsAtRandom(Object.Tree, numTrees, allowedTiles);
+
+		// Place Bushes which are food for land animals
+		int numBushes = Random.Range(NUM_BUSHES.minimum, NUM_BUSHES.maximum);
+		spawnObjectsAtRandom(Object.Bush, numBushes, allowedTiles);
 
 	}
 
