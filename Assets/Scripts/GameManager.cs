@@ -31,7 +31,7 @@ public class GameManager : MonoBehaviour {
 	public void initGame() {
 		// Initialize values and start the game
 		boardScript = GetComponent<BoardManager>();
-		boardScript.createScene(false, 1234);
+		boardScript.createScene(this.useSeed, this.seed);
 	}
 
 	// Setters and getters for the seed info

@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 
 // Class to load the game manager singleton as soon as the game starts
-public class Loader : MonoBehaviour {
+public class MenuLoader : MonoBehaviour {
 
 	// GameManare object to load, passed through Unity
 	public GameObject GAME_MANAGER;

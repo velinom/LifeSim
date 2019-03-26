@@ -21,6 +21,7 @@ GameObject:
   - component: {fileID: 4735847098984210}
   - component: {fileID: 114177822606438078}
   - component: {fileID: 114039265379607320}
+  - component: {fileID: 95419853374610626}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -41,6 +42,23 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!95 &95419853374610626
+Animator:
+  serializedVersion: 3
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1572485264019824}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 3ca03c79f265f5e42adccd648938ea7c, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
 --- !u!114 &114039265379607320
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -66,10 +84,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   SIZE: 50
   CELL_SIZE: 1.2
+  NUM_HILLS:
+    minimum: 3
+    maximum: 5
+  NUM_PONDS:
+    minimum: 4
+    maximum: 6
+  NUM_TREES:
+    minimum: 40
+    maximum: 60
   MID_ELEVATION_PERCENT: 0.5
   MID_EXPANSION_CHANCE: 0.65
   HIGH_ELEVATION_PERCENT: 0.15
   HIGH_EXPANSION_CHANCE: 0.65
+  WATER_PERCENT: 0.15
+  WATER_EXPANSION_CHANCE: 0.75
   LOW_ELEVATION_TILES:
   - {fileID: 1452175898027798, guid: 5bc89127b753b054ab68e4befee08475, type: 2}
   - {fileID: 1209248347846922, guid: 56e5f25593282484eb1c5c2d183075c7, type: 2}
@@ -94,3 +123,19 @@ MonoBehaviour:
   - {fileID: 1792505385546176, guid: 0a0fd1ab7ca0c5a44b24893121fa6b0c, type: 2}
   HIGH_ELEVATION_TILES:
   - {fileID: 1736587724346284, guid: 63131bed56590244e8d1ae6c58198469, type: 2}
+  - {fileID: 1507841938152100, guid: 949485aa7ef208e49a10dd41b8acc533, type: 2}
+  - {fileID: 1280118095404372, guid: 67231f2a2ea181f4dbe377886ab825be, type: 2}
+  - {fileID: 1626114367258350, guid: 752fb8645c0d1864483d0a85da4e77e8, type: 2}
+  - {fileID: 1096875503228838, guid: 467ae7c118934cd45b22e19c5af67e2e, type: 2}
+  - {fileID: 1490754325799454, guid: 18449c973104c274abe643748613a2da, type: 2}
+  - {fileID: 1010498524856004, guid: 63e51152bbdba834280a1b4639ca9cd3, type: 2}
+  WATER_TILES:
+  - {fileID: 1807992019626814, guid: 5664a41efe5915d43aefae0fd985cfd2, type: 2}
+  - {fileID: 1928517013471302, guid: fa19e9e47f8c70842b6753dd565d0f4d, type: 2}
+  - {fileID: 1723492592092804, guid: 885421f5cdcdc2f4389c1fd6d5c53915, type: 2}
+  - {fileID: 1894090989569874, guid: 4fe3dcc3cba5af244bac370922750dc9, type: 2}
+  - {fileID: 1928187422901118, guid: d2a9a94a726853545a83e816cad1be33, type: 2}
+  TREES:
+  - {fileID: 1955727901029974, guid: b25b65eda2841db4c948bff674fe6835, type: 2}
+  - {fileID: 1110009346056048, guid: 2cdf2818c1d44524290b068dd04deced, type: 2}
+  BUSHES: []
