@@ -70,7 +70,6 @@ public class BoardManager : MonoBehaviour {
 			Vector2 ithRoot = new Vector2(Random.Range(0, SIZE), Random.Range(0, SIZE));
 			roots.Add(ithRoot);
 		}
-		Debug.Log("Roots: " + numberOfRoots);
 		propagateRootTiles(roots, MID_ELEVATION_PERCENT, MID_EXPANSION_CHANCE, TileType.Medium);
 
 		// Now place the high elevation tiles starting at the same roots
@@ -258,7 +257,6 @@ public class BoardManager : MonoBehaviour {
 	// To be called by the game manager, randomly makes the board
 	// and instantiates the tiles in their place
 	public void createScene(bool useSeed, int seed) {
-		Debug.Log(useSeed + ": " + seed);
 		if (useSeed) Random.InitState(seed);
 
 		setupBoard();

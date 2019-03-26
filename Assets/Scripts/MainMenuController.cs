@@ -46,4 +46,10 @@ public class MainMenuController : MonoBehaviour {
       GameManager.instance.setUseSeed(true);
     }
   }
+
+  // Called when the user quits the game
+  public void onQuitGame() {
+    Debug.Log("quitting");
+    Application.Quit();
+  }
 }

@@ -58,5 +58,12 @@ public class CameraController : MonoBehaviour {
 		}
 		Camera.main.orthographicSize += Input.GetAxis("Mouse ScrollWheel") * ZOOM_SPEED;
 		Camera.main.orthographicSize = Mathf.Clamp(Camera.main.orthographicSize, MIN_SIZE, MAX_SIZE);
+
+		// Check if the game has been quit
+		if (Input.GetKey(KeyCode.Escape)) {
+			Application.Quit();
+		}
 	}
+
+
 }
