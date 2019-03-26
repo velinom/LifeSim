@@ -64,6 +64,4 @@ public class CameraController : MonoBehaviour {
 			Application.Quit();
 		}
 	}
-
-
 }
