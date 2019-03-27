@@ -998,7 +998,7 @@ ParticleSystem:
   moveWithTransform: 0
   moveWithCustomTransform: {fileID: 0}
   scalingMode: 1
-  randomSeed: -169410773
+  randomSeed: 847143188
   InitialModule:
     serializedVersion: 3
     enabled: 1
@@ -1150,7 +1150,7 @@ ParticleSystem:
     startSize:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 0.09
+      scalar: 0.11
       minScalar: 1
       maxCurve:
         serializedVersion: 2
@@ -4236,7 +4236,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.39400002, y: 0.125}
   m_AnchorMax: {x: 0.94455475, y: 0.5611875}
-  m_AnchoredPosition: {x: 0.002029419, y: -28.774994}
+  m_AnchoredPosition: {x: 0.0020141602, y: -28.774963}
   m_SizeDelta: {x: 0, y: 57.575}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1051400013
