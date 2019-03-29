@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Models;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -257,6 +258,13 @@ public class BoardManager : MonoBehaviour {
 				}
 			}
 		}
+	}
+
+	// Propogates smells from the food and water tiles. These smells are static since trees and 
+	// plants will be perminantly fixed for this iteration of th game.
+	// Populates a 2x2 array that mirors the grid with smells.
+	private void propogateSmells() {
+		// Setup the smell-gird (A 2x2 array of Smell objects)
 	}
 
 	// To be called by the game manager, randomly makes the board

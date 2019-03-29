@@ -91,11 +91,11 @@ MonoBehaviour:
     minimum: 4
     maximum: 6
   NUM_TREES:
-    minimum: 15
-    maximum: 25
+    minimum: 12
+    maximum: 20
   NUM_BUSHES:
-    minimum: 20
-    maximum: 30
+    minimum: 18
+    maximum: 25
   MID_ELEVATION_PERCENT: 0.5
   MID_EXPANSION_CHANCE: 0.65
   HIGH_ELEVATION_PERCENT: 0.15
