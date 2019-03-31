@@ -2,13 +2,15 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+
 using Random = UnityEngine.Random;
 
 // Procedurally generates and renders the game board (Three different elevations)
 public class BoardManager : MonoBehaviour {
 
 	// Size of the game board, set to public so they can be modified in Unity
-	public int SIZE = 50;
+	public int SIZE;
 
 	// In hundreds of px for use with unity placing.
 	public float CELL_SIZE;
@@ -45,12 +47,17 @@ public class BoardManager : MonoBehaviour {
 	// Parent objects that hold spawned children, keeps the object hierarchy neat
 	private Transform boardHolder;
 	private Transform foodHolder;
+	public Canvas textHolder; // Canvas for rendering onto
 
 	// 2D array of tyle-types that gets randomly generated
 	private TileType[, ] boardArray;
 
 	// 2D array of objects that get randomly placed on the board
 	private Object[, ] objectArray;
+
+	// Hold x, y, coordinates for the trees and bushes 
+	private List<Vector2> treeLocations;
+	private List<Vector2> bushLocations;
 
   // Initializes the boardArray using random methods to set the elevation
 	// type at each position on the board.
@@ -202,6 +209,18 @@ public class BoardManager : MonoBehaviour {
 		int numBushes = Random.Range(NUM_BUSHES.minimum, NUM_BUSHES.maximum);
 		spawnObjectsAtRandom(Object.Bush, numBushes, allowedTiles);
 
+		// Loop over object array and store tree / bush locations
+		treeLocations = new List<Vector2>();
+		bushLocations = new List<Vector2>();
+		for (int x = 0; x < SIZE; x++) {
+			for (int y = 0; y < SIZE; y++) {
+				if (objectArray[x, y] == Object.Tree) {
+					treeLocations.Add(new Vector2(x, y));
+				} else if (objectArray[x, y] == Object.Bush) {
+					bushLocations.Add(new Vector2(x, y));
+				}
+			}
+		}
 	}
 
 	// Spawns the given number of tiles at random, only placing them on allowed tiles
@@ -260,11 +279,59 @@ public class BoardManager : MonoBehaviour {
 		}
 	}
 
-	// Propogates smells from the food and water tiles. These smells are static since trees and 
+	// Propagates smells from the food and water tiles. These smells are static since trees and 
 	// plants will be perminantly fixed for this iteration of th game.
 	// Populates a 2x2 array that mirors the grid with smells.
-	private void propogateSmells() {
+	private void propagateSmells() {
 		// Setup the smell-gird (A 2x2 array of Smell objects)
+		Smell[, ] smellArray = new Smell[SIZE, SIZE];
+
+		// Begin by propagating the trees
+		// Loop over all tiles and determine the smell from each tree at that tile
+		for (int x = 0; x < SIZE; x++) {
+			for (int y = 0; y < SIZE; y++) {
+				// Loop over each tree and add the smell from that tree to the Smell object
+				// at the current tile
+				Smell curLocSmell = new Smell();
+				Debug.Log(treeLocations.Count);
+				foreach (Vector2 loc in treeLocations) {
+					float deltaX = Math.Abs(loc.x - x);
+					float deltaY = Math.Abs(loc.y - y);
+					double distance = Math.Sqrt(deltaX * deltaX + deltaY * deltaY);
+
+					if (distance < 0.1) {
+						curLocSmell.addToSmell(SmellType.TreeFood, 1);
+					} else {
+						curLocSmell.addToSmell(SmellType.TreeFood, 1.0 / (distance * distance));
+					}
+				}
+
+				smellArray[x, y] = curLocSmell;
+			} 
+		}
+
+		// Render on the canvas the smell values
+		for (int x = 0; x < SIZE; x++) {
+			for (int y = 0; y < SIZE; y++) {
+				GameObject newGO = new GameObject("Some Text");
+				newGO.transform.SetParent(textHolder.transform);
+				Text newText = newGO.AddComponent<Text>();
+				newText.text = (smellArray[x, y].getSmell(SmellType.TreeFood)).ToString();
+				//newText.text = (3.3).ToString();
+				newGO.transform.localScale = new Vector3(0.02f, 0.02f, 1);
+				Font ArialFont = (Font)Resources.GetBuiltinResource(typeof(Font), "Arial.ttf");
+				newText.font = ArialFont;
+				newText.material = ArialFont.material;
+				newText.color = new Color(0, 0, 0);
+				
+				RectTransform textTransform = newText.GetComponent<RectTransform>();
+				textTransform.sizeDelta = new Vector2(45, 25);
+				textTransform.anchorMin = new Vector2(0, 0);
+				textTransform.anchorMax = new Vector2(0, 0);
+				textTransform.pivot = new Vector2(0, 0);
+				newText.transform.position = new Vector3(x * CELL_SIZE - 0.05f, y * CELL_SIZE - 0.05f, 0);
+			}
+		}
 	}
 
 	// To be called by the game manager, randomly makes the board
@@ -272,9 +339,15 @@ public class BoardManager : MonoBehaviour {
 	public void createScene(bool useSeed, int seed) {
 		if (useSeed) Random.InitState(seed);
 
+		// Setup the water and land tiles, then render them
 		setupBoard();
 		createBoard();
+
+		// Setup the tree and bush tiles, then render them
 		setupObjects();
 		createObjects();
+
+		// Setup the smells and store them for easy access in game
+		//propagateSmells();
 	}
 }
