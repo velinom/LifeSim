@@ -55,6 +55,9 @@ public class BoardManager : MonoBehaviour {
 	// 2D array of objects that get randomly placed on the board
 	private Object[, ] objectArray;
 
+	// 2D array of smell objects representing the smell at each cell
+	private Smell[, ] smellArray;
+
 	// Hold x, y, coordinates for the trees and bushes 
 	private List<Vector2> treeLocations;
 	private List<Vector2> bushLocations;
@@ -284,7 +287,7 @@ public class BoardManager : MonoBehaviour {
 	// Populates a 2x2 array that mirors the grid with smells.
 	private void propagateSmells() {
 		// Setup the smell-gird (A 2x2 array of Smell objects)
-		Smell[, ] smellArray = new Smell[SIZE, SIZE];
+		smellArray = new Smell[SIZE, SIZE];
 
 		// Begin by propagating the trees
 		// Loop over all tiles and determine the smell from each tree at that tile
@@ -309,15 +312,18 @@ public class BoardManager : MonoBehaviour {
 				smellArray[x, y] = curLocSmell;
 			} 
 		}
+	}
 
+	// Helper / debugging method to display the value for the given type of smell
+	// at each cell on the board. Shouldn't be used in actual game
+	private void displaySmells(SmellType type) {
 		// Render on the canvas the smell values
 		for (int x = 0; x < SIZE; x++) {
 			for (int y = 0; y < SIZE; y++) {
 				GameObject newGO = new GameObject("Some Text");
 				newGO.transform.SetParent(textHolder.transform);
 				Text newText = newGO.AddComponent<Text>();
-				newText.text = (smellArray[x, y].getSmell(SmellType.TreeFood)).ToString();
-				//newText.text = (3.3).ToString();
+				newText.text = (smellArray[x, y].getSmell(type)).ToString();
 				newGO.transform.localScale = new Vector3(0.02f, 0.02f, 1);
 				Font ArialFont = (Font)Resources.GetBuiltinResource(typeof(Font), "Arial.ttf");
 				newText.font = ArialFont;
@@ -348,6 +354,7 @@ public class BoardManager : MonoBehaviour {
 		createObjects();
 
 		// Setup the smells and store them for easy access in game
-		//propagateSmells();
+		propagateSmells();
+		//displaySmells(SmellType.TreeFood);
 	}
 }
