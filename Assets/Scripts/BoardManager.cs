@@ -47,7 +47,7 @@ public class BoardManager : MonoBehaviour {
 	// Parent objects that hold spawned children, keeps the object hierarchy neat
 	private Transform boardHolder;
 	private Transform foodHolder;
-	public Canvas textHolder; // Canvas for rendering onto
+	public Canvas textHolder; // Canvas for rendering onto for debugging
 
 	// 2D array of tyle-types that gets randomly generated
 	private TileType[, ] boardArray;
@@ -58,9 +58,11 @@ public class BoardManager : MonoBehaviour {
 	// 2D array of smell objects representing the smell at each cell
 	private Smell[, ] smellArray;
 
-	// Hold x, y, coordinates for the trees and bushes 
+	// Hold x, y, coordinates for the trees, water and bushes 
+	// Used to initially propogate smells, but not used in game
 	private List<Vector2> treeLocations;
 	private List<Vector2> bushLocations;
+	private List<Vector2> waterLocations;
 
   // Initializes the boardArray using random methods to set the elevation
 	// type at each position on the board.
@@ -118,6 +120,7 @@ public class BoardManager : MonoBehaviour {
 
 		// In a loop, place tiles (starting at the roots) until queue is empty
 		// or we have reached tilesToPlace
+		waterLocations = new List<Vector2>();
 		while (placedTiles < tilesToPlace && openList.Count > 0) {
 			// Pop off the queue
 			Vector2 currentTile = openList.Dequeue();
@@ -132,6 +135,7 @@ public class BoardManager : MonoBehaviour {
 			// Set the tile to the desired type
 			boardArray[curX, curY] = type;
 			placedTiles++;
+			if (type == TileType.Water) waterLocations.Add(new Vector2(curX, curY));
 
 			// Add neighbors to Queue if they aren't the same type
 			// Adding the down neighbor
@@ -296,7 +300,6 @@ public class BoardManager : MonoBehaviour {
 				// Loop over each tree and add the smell from that tree to the Smell object
 				// at the current tile
 				Smell curLocSmell = new Smell();
-				Debug.Log(treeLocations.Count);
 				foreach (Vector2 loc in treeLocations) {
 					float deltaX = Math.Abs(loc.x - x);
 					float deltaY = Math.Abs(loc.y - y);
@@ -306,6 +309,32 @@ public class BoardManager : MonoBehaviour {
 						curLocSmell.addToSmell(SmellType.TreeFood, 1);
 					} else {
 						curLocSmell.addToSmell(SmellType.TreeFood, 1.0 / (distance * distance));
+					}
+				}
+
+				// Loop over bushes and add the smell from each bush to the current tile
+				foreach (Vector2 loc in bushLocations) {
+					float deltaX = Math.Abs(loc.x - x);
+					float deltaY = Math.Abs(loc.y - y);
+					double distance = Math.Sqrt(deltaX * deltaX + deltaY * deltaY);
+
+					if (distance < 0.1) {
+						curLocSmell.addToSmell(SmellType.GroundFood, 1);
+					} else {
+						curLocSmell.addToSmell(SmellType.GroundFood, 1.0 / (distance * distance));
+					}
+				}
+
+				// Loop over the water tiles and add the smell form each tile to the current tile
+				foreach (Vector2 loc in waterLocations) {
+					float deltaX = Math.Abs(loc.x - x);
+					float deltaY = Math.Abs(loc.y - y);
+					double distance = Math.Sqrt(deltaX * deltaX + deltaY * deltaY);
+
+					if (distance < 0.1) {
+						curLocSmell.addToSmell(SmellType.Water, 1);
+					} else {
+						curLocSmell.addToSmell(SmellType.Water, 1.0 / (distance * distance));
 					}
 				}
 
@@ -355,6 +384,6 @@ public class BoardManager : MonoBehaviour {
 
 		// Setup the smells and store them for easy access in game
 		propagateSmells();
-		//displaySmells(SmellType.TreeFood);
+		//displaySmells(SmellType.Water);
 	}
 }
