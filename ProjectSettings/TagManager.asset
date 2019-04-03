@@ -47,6 +47,9 @@ TagManager:
   - name: Floor
     uniqueID: 3284206673
     locked: 0
-  - name: Flora
+  - name: Plants
     uniqueID: 540328723
+    locked: 0
+  - name: Animals
+    uniqueID: 4255474747
     locked: 0

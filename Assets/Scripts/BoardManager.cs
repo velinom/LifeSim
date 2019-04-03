@@ -8,13 +8,6 @@ using Random = UnityEngine.Random;
 
 // Procedurally generates and renders the game board (Three different elevations)
 public class BoardManager : MonoBehaviour {
-
-	// Size of the game board, set to public so they can be modified in Unity
-	public int SIZE;
-
-	// In hundreds of px for use with unity placing.
-	public float CELL_SIZE;
-
 	// Min and max number of different things to spawn in game
 	public Count NUM_HILLS;  // Number of hill root nodes to spawn
 	public Count NUM_PONDS;  // Number of water root nodes to spawn
@@ -39,10 +32,10 @@ public class BoardManager : MonoBehaviour {
 	public GameObject[] BUSHES;
 
 	// The three types of elevation tiles and water
-	private enum TileType { Low, Medium, High, Water }
+	public enum TileType { Low, Medium, High, Water }
 
-	// The different objects that can be spawned in the world
-	private enum Object { None, Tree, Bush }
+	// The different food that can be spawned in the world
+	public enum Food { None, Tree, Bush }
 
 	// Parent objects that hold spawned children, keeps the object hierarchy neat
 	private Transform boardHolder;
@@ -53,7 +46,7 @@ public class BoardManager : MonoBehaviour {
 	private TileType[, ] boardArray;
 
 	// 2D array of objects that get randomly placed on the board
-	private Object[, ] objectArray;
+	private Food[, ] foodArray;
 
 	// 2D array of smell objects representing the smell at each cell
 	private Smell[, ] smellArray;
@@ -67,11 +60,11 @@ public class BoardManager : MonoBehaviour {
   // Initializes the boardArray using random methods to set the elevation
 	// type at each position on the board.
 	private void setupBoard() {
-		boardArray = new TileType[SIZE, SIZE];
+		boardArray = new TileType[GameManager.SIZE, GameManager.SIZE];
 
 		// Begin by making every tile Low elevation
-		for (int x = 0; x < SIZE; x++) {
-			for (int y = 0; y < SIZE; y++) {
+		for (int x = 0; x < GameManager.SIZE; x++) {
+			for (int y = 0; y < GameManager.SIZE; y++) {
 				boardArray[x, y] = TileType.Low;
 			}
 		}
@@ -81,7 +74,7 @@ public class BoardManager : MonoBehaviour {
 		int numberOfRoots = Random.Range(NUM_HILLS.minimum, NUM_HILLS.maximum);
 		List<Vector2> roots = new List<Vector2>();
 		for (int i = 0; i < numberOfRoots; i++) {
-			Vector2 ithRoot = new Vector2(Random.Range(0, SIZE), Random.Range(0, SIZE));
+			Vector2 ithRoot = new Vector2(Random.Range(0, GameManager.SIZE), Random.Range(0, GameManager.SIZE));
 			roots.Add(ithRoot);
 		}
 		propagateRootTiles(roots, MID_ELEVATION_PERCENT, MID_EXPANSION_CHANCE, TileType.Medium);
@@ -96,7 +89,7 @@ public class BoardManager : MonoBehaviour {
 			Vector2 waterRoot = new Vector2(0, 0);
 			bool validRoot = false;
 			while (!validRoot) {
-				waterRoot = new Vector2(Random.Range(0, SIZE), Random.Range(0, SIZE));
+				waterRoot = new Vector2(Random.Range(0, GameManager.SIZE), Random.Range(0, GameManager.SIZE));
 				validRoot = boardArray[(int)waterRoot.x, (int)waterRoot.y] != TileType.High;
 			}
 			roots.Add(waterRoot);
@@ -109,7 +102,7 @@ public class BoardManager : MonoBehaviour {
 	private void propagateRootTiles(List<Vector2> roots, double coveragePercent,
 	                                double expansionChance, TileType type) {
 		// Start by calculating how many tiles of this type to place
-		int tilesToPlace = (int)(SIZE * SIZE * coveragePercent);
+		int tilesToPlace = (int)(GameManager.SIZE * GameManager.SIZE * coveragePercent);
 		int placedTiles = 0;
 
 		// Open list of tiles to set and then propogate, init with roots
@@ -151,13 +144,13 @@ public class BoardManager : MonoBehaviour {
 				}
 			}
 			// Adding the top neighbor
-			if (curY < SIZE - 1 && boardArray[curX, curY + 1] != type) {
+			if (curY < GameManager.SIZE - 1 && boardArray[curX, curY + 1] != type) {
 				if (Random.value < expansionChance) {
 					openList.Enqueue(new Vector2(curX, curY + 1));
 				}
 			}
 			// Adding the right neighbor
-			if (curX < SIZE - 1 && boardArray[curX + 1, curY] != type) {
+			if (curX < GameManager.SIZE - 1 && boardArray[curX + 1, curY] != type) {
 				if (Random.value < expansionChance) {
 					openList.Enqueue(new Vector2(curX + 1, curY));
 				}
@@ -170,8 +163,8 @@ public class BoardManager : MonoBehaviour {
 	private void createBoard() {
 		boardHolder = new GameObject("Board").transform;
 
-		for (int x = 0; x < SIZE; x++) {
-			for (int y = 0; y < SIZE; y++) {
+		for (int x = 0; x < GameManager.SIZE; x++) {
+			for (int y = 0; y < GameManager.SIZE; y++) {
 				GameObject toInstantiate = null;
 				TileType currentType = boardArray[x, y];
 
@@ -197,7 +190,8 @@ public class BoardManager : MonoBehaviour {
 
 				// Instantiate the right tyle object at the location
 				GameObject instance = Instantiate(
-					toInstantiate, new Vector3(x * CELL_SIZE, y * CELL_SIZE, 0f), Quaternion.identity) as GameObject;
+					toInstantiate, new Vector3(x * GameManager.CELL_SIZE,
+					 y * GameManager.CELL_SIZE, 0f), Quaternion.identity) as GameObject;
 				instance.transform.SetParent(boardHolder);
 			}
 		}
@@ -205,25 +199,25 @@ public class BoardManager : MonoBehaviour {
 
 	// Populates the map with objects including bushes and trees for food
 	private void setupObjects() {
-		objectArray = new Object[SIZE, SIZE];
+		foodArray = new Food[GameManager.SIZE, GameManager.SIZE];
 
 		// Begin with trees which are food for birds
 		int numTrees = Random.Range(NUM_TREES.minimum, NUM_TREES.maximum);
 		List<TileType> allowedTiles = new List<TileType> { TileType.Low, TileType.Medium }; 
-		spawnObjectsAtRandom(Object.Tree, numTrees, allowedTiles);
+		spawnObjectsAtRandom(Food.Tree, numTrees, allowedTiles);
 
 		// Place Bushes which are food for land animals
 		int numBushes = Random.Range(NUM_BUSHES.minimum, NUM_BUSHES.maximum);
-		spawnObjectsAtRandom(Object.Bush, numBushes, allowedTiles);
+		spawnObjectsAtRandom(Food.Bush, numBushes, allowedTiles);
 
 		// Loop over object array and store tree / bush locations
 		treeLocations = new List<Vector2>();
 		bushLocations = new List<Vector2>();
-		for (int x = 0; x < SIZE; x++) {
-			for (int y = 0; y < SIZE; y++) {
-				if (objectArray[x, y] == Object.Tree) {
+		for (int x = 0; x < GameManager.SIZE; x++) {
+			for (int y = 0; y < GameManager.SIZE; y++) {
+				if (foodArray[x, y] == Food.Tree) {
 					treeLocations.Add(new Vector2(x, y));
-				} else if (objectArray[x, y] == Object.Bush) {
+				} else if (foodArray[x, y] == Food.Bush) {
 					bushLocations.Add(new Vector2(x, y));
 				}
 			}
@@ -231,21 +225,21 @@ public class BoardManager : MonoBehaviour {
 	}
 
 	// Spawns the given number of tiles at random, only placing them on allowed tiles
-	private void spawnObjectsAtRandom(Object type, int numToSpawn, List<TileType> allowed) {
+	private void spawnObjectsAtRandom(Food type, int numToSpawn, List<TileType> allowed) {
 		while(numToSpawn > 0) {
 			bool placed = false;
 			while (!placed) {
-				int x = Random.Range(0, SIZE);
-				int y = Random.Range(0, SIZE);
+				int x = Random.Range(0, GameManager.SIZE);
+				int y = Random.Range(0, GameManager.SIZE);
 
 				// Begin by checking that there isn't an object there already
-				if (objectArray[x, y] != Object.None) continue;
+				if (foodArray[x, y] != Food.None) continue;
 
 				// Make sure the the random location is allowed
 				if (!allowed.Contains(boardArray[x, y])) continue;
 
 				// If we have reached this point we will set the object in the array
-				objectArray[x, y] = type;
+				foodArray[x, y] = type;
 				placed = true;
 			} 
 
@@ -258,28 +252,29 @@ public class BoardManager : MonoBehaviour {
 	private void createObjects() {
 		foodHolder = new GameObject("Food").transform;
 
-		for (int x = 0; x < SIZE; x++) {
-			for (int y = 0; y < SIZE; y++) {
+		for (int x = 0; x < GameManager.SIZE; x++) {
+			for (int y = 0; y < GameManager.SIZE; y++) {
 				GameObject toInstantiate = null;
-				Object currentType = objectArray[x, y];
+				Food currentType = foodArray[x, y];
 
 				switch(currentType) {
-					case Object.Tree: {
+					case Food.Tree: {
             toInstantiate = TREES[Random.Range(0, TREES.Length)];
 						break;
 					}
-					case Object.Bush: {
+					case Food.Bush: {
 						toInstantiate = BUSHES[Random.Range(0, BUSHES.Length)];
 						break;
 					}
-					case Object.None: break;
+					case Food.None: break;
 					default: break;
 				}
 
 				// Instantiate the right tyle object at the location
 				if (toInstantiate != null) {
 					GameObject instance = Instantiate(
-						toInstantiate, new Vector3(x * CELL_SIZE, y * CELL_SIZE, 0f), Quaternion.identity) as GameObject;
+						toInstantiate, new Vector3(x * GameManager.CELL_SIZE,
+						y * GameManager.CELL_SIZE, 0f), Quaternion.identity) as GameObject;
 					instance.transform.SetParent(foodHolder);
 				}
 			}
@@ -291,12 +286,12 @@ public class BoardManager : MonoBehaviour {
 	// Populates a 2x2 array that mirors the grid with smells.
 	private void propagateSmells() {
 		// Setup the smell-gird (A 2x2 array of Smell objects)
-		smellArray = new Smell[SIZE, SIZE];
+		smellArray = new Smell[GameManager.SIZE, GameManager.SIZE];
 
 		// Begin by propagating the trees
 		// Loop over all tiles and determine the smell from each tree at that tile
-		for (int x = 0; x < SIZE; x++) {
-			for (int y = 0; y < SIZE; y++) {
+		for (int x = 0; x < GameManager.SIZE; x++) {
+			for (int y = 0; y < GameManager.SIZE; y++) {
 				// Loop over each tree and add the smell from that tree to the Smell object
 				// at the current tile
 				Smell curLocSmell = new Smell();
@@ -347,8 +342,8 @@ public class BoardManager : MonoBehaviour {
 	// at each cell on the board. Shouldn't be used in actual game
 	private void displaySmells(SmellType type) {
 		// Render on the canvas the smell values
-		for (int x = 0; x < SIZE; x++) {
-			for (int y = 0; y < SIZE; y++) {
+		for (int x = 0; x < GameManager.SIZE; x++) {
+			for (int y = 0; y < GameManager.SIZE; y++) {
 				GameObject newGO = new GameObject("Some Text");
 				newGO.transform.SetParent(textHolder.transform);
 				Text newText = newGO.AddComponent<Text>();
@@ -364,7 +359,8 @@ public class BoardManager : MonoBehaviour {
 				textTransform.anchorMin = new Vector2(0, 0);
 				textTransform.anchorMax = new Vector2(0, 0);
 				textTransform.pivot = new Vector2(0, 0);
-				newText.transform.position = new Vector3(x * CELL_SIZE - 0.05f, y * CELL_SIZE - 0.05f, 0);
+				newText.transform.position = new Vector3(x * GameManager.CELL_SIZE - 0.05f,
+				y * GameManager.CELL_SIZE - 0.05f, 0);
 			}
 		}
 	}
@@ -385,5 +381,20 @@ public class BoardManager : MonoBehaviour {
 		// Setup the smells and store them for easy access in game
 		propagateSmells();
 		//displaySmells(SmellType.Water);
+	}
+
+	/*
+	 * GETTERS SO THE GAME MANAGER CAN GET ARRAYS
+	 */
+	public TileType[, ] getBoardArray() {
+		return boardArray;
+	}
+
+	public Food[, ] getFoodArray() {
+		return foodArray;
+	}
+
+	public Smell[, ] getSmellArray() {
+		return smellArray;
 	}
 }
