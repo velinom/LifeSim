@@ -11,51 +11,105 @@ public class SheepController : MonoBehaviour {
   // The max speed / accel (Force) for this sheep
   private float MAX_SPEED = 5;
   private float MAX_ACCEL = 10;
+  private float MAX_ROTATION = 90;
+  private float MAX_ANGULAR_ACC = 15;
 
   // The radii for the arrive-at behavior
-  private float ARRIVE_RADIUS = 0.2f;
+  private float ARRIVE_RADIUS = 0.5f;
   private float SLOW_RADIUS = 3f;
+  private float ROTATE_ARRIVE_RAD = 4;
+  private float ROTATE_SLOW_RAD = 20;
 
   // The force that will be applied to this sheep each frame.
   // This force can come from several different sources and 
   // accounts for steering behaviors.
   private Vector2 steering;
+  private float angularSteering;
 
   // Updated at the start of each frame, the current cell the 
   // sheep is in.
   private Vector2 currentCell;
 
-  // The current velocity of the sheep
+  // The current velocity and rotation of the sheep
   private Vector2 velocity;
+  private float rotation;
 
   // Setup this sheep by initializing fields
   void Start() {
     velocity = new Vector2(0, 0);
+    rotation = 0;
   }
 	
 	// Update is called once per frame used to calculate the steering 
   // for the given frame
 	void Update () {
+    // Update the current cell so that it is known the whole update
     this.currentCell = getCurrentCell();
+
+    // Calculate the steering, this includes the high level goal steering as
+    // well as lower level steering to avoid trees / rocks etc.
     calculateSteering();
 
+    // Calculate the rotation which is always towards the sheeps current 
+    // velocity
+    calculateRotation();
+
+    // Apply the steering to actually move the sheep, both linear and 
+    // rotational steering are applied here.
     applySteering();
   }
-
 
   // Determine the force that should be applied to move the sheep on this 
   // frame
   private void calculateSteering() {
+    // The steering toward the sheeps current goal, to be set below.
+    Vector2 mainGoalSteering = new Vector2(-1, -1);
+
     // If within 3 blocks of smell, arrive at smell
     Vector2 closeBush = getClose(BoardManager.Food.Bush, 3);
     if (closeBush.x >= 0 && closeBush.y >= 0) {
-      Debug.Log("Sheep found bush at: (" + closeBush.x + ", " + closeBush.y + ")");
-      this.steering = arriveAt(
+      mainGoalSteering = arriveAt(
         new Vector2(closeBush.x * CELL_SIZE, closeBush.y * CELL_SIZE));
     } else {
       // Otherwise, follow the smell until within 3 blocks
-      this.steering = getDirectionOf(SmellType.GroundFood) * MAX_ACCEL;
+      mainGoalSteering = getDirectionOf(SmellType.GroundFood) * MAX_ACCEL;
     }
+
+    // Now that main steering has been calculated, get lower-level steerings 
+    
+    // Wall Avoidence:
+    // Cast a ray in front of the sheep to determine if there is a wall there
+
+
+
+    // The total steering is a weighted sum of the components
+    this.steering = mainGoalSteering;
+  }
+
+  // Calculate rotation, Rotatoin is always in the direction of the 
+  // current velocity.
+  private void calculateRotation() {
+    float targetOrientation = Mathf.Rad2Deg * Mathf.Atan2(velocity.y, velocity.x);
+    
+    // The target rotation depends on the radii for "arive" and "slow
+    float curOrientation = transform.eulerAngles.z;
+    if (curOrientation > 180) curOrientation -= 360;
+    float targetRotation = targetOrientation - curOrientation;
+    if (Mathf.Abs(targetRotation) < ROTATE_ARRIVE_RAD) {
+      targetRotation = 0;
+    } else if (Mathf.Abs(targetRotation) < SLOW_RADIUS) {
+      targetRotation = MAX_ROTATION * targetRotation / ROTATE_SLOW_RAD;
+    } else {
+      targetRotation = targetRotation > 0 ? MAX_ROTATION : -MAX_ROTATION;
+    }
+
+    // If the sheep is stopped, make it stop rotating
+    if (velocity.magnitude < 0.05) {
+      targetRotation = -this.rotation;
+    }
+
+    this.angularSteering = targetRotation - this.rotation;
+
   }
 
   // Assess the smell of the given type in the 3x3 area surounding the agent,
@@ -137,25 +191,33 @@ public class SheepController : MonoBehaviour {
     return new Vector2(xCell, yCell);
   }
 
-  // Preform an update on the sheep based on the linear acceleration.
-  // Then move the sheep based on the new velocity
+  // Preform an update on the sheep based on the linear acceleration and rotation.
+  // Then move the sheep based on the new velocity and orientatoin.
   private void applySteering() {
-    // Begin by clamping the acceleration
+    // Begin by clamping the linear / angular acceleration
     if (steering.magnitude > MAX_ACCEL) {
       this.steering.Normalize();
       this.steering *= MAX_ACCEL;
     }
+    if (Mathf.Abs(angularSteering) > MAX_ANGULAR_ACC) {
+      angularSteering = angularSteering > 0 ? MAX_ANGULAR_ACC : -MAX_ANGULAR_ACC;
+    }
 
-    // Update the velocity using the acceleration
-    this.velocity = this.velocity + this.steering;
+    // Update the velocities using the accelerations
+    this.velocity += this.steering;
+    this.rotation += this.angularSteering;
 
-    // Clip the velocity if it is too high
+    // Clip the velocity/rotation if they are too high
     if (this.velocity.magnitude > MAX_SPEED) {
       this.velocity.Normalize();
       this.velocity *= MAX_SPEED;
     }
+    if (Mathf.Abs(this.rotation) > MAX_ROTATION) {
+      this.rotation = this.rotation > 0 ? MAX_ROTATION : - MAX_ROTATION;
+    }
 
-    // Move the sheep
-    this.transform.Translate(this.velocity * Time.deltaTime);
+    // Now apply the steering to the sheep
+    this.transform.Translate(this.velocity * Time.deltaTime, Space.World);
+    this.transform.Rotate(0, 0, this.rotation * Time.deltaTime);
   }
 }

@@ -108,6 +108,12 @@ NavMeshSettings:
     tileSize: 256
     accuratePlacement: 0
   m_NavMeshData: {fileID: 0}
+--- !u!114 &341049244 stripped
+MonoBehaviour:
+  m_PrefabParentObject: {fileID: 114039265379607320, guid: 4f8cc3e8a55843543954c61d9c458317,
+    type: 2}
+  m_PrefabInternal: {fileID: 1508797784}
+  m_Script: {fileID: 11500000, guid: 74e3bd9de4d8c8a458846a31a06ab09c, type: 3}
 --- !u!1 &783137973
 GameObject:
   m_ObjectHideFlags: 0
@@ -297,7 +303,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1055673808}
   - component: {fileID: 1055673807}
-  - component: {fileID: 1055673806}
+  - component: {fileID: 1055673809}
   m_Layer: 0
   m_Name: Sheep01
   m_TagString: Untagged
@@ -305,26 +311,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!50 &1055673806
-Rigidbody2D:
-  serializedVersion: 4
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1055673805}
-  m_BodyType: 0
-  m_Simulated: 1
-  m_UseFullKinematicContacts: 0
-  m_UseAutoMass: 0
-  m_Mass: 1
-  m_LinearDrag: 0
-  m_AngularDrag: 0.05
-  m_GravityScale: 0
-  m_Material: {fileID: 0}
-  m_Interpolate: 0
-  m_SleepingMode: 1
-  m_CollisionDetection: 0
-  m_Constraints: 0
 --- !u!212 &1055673807
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -380,6 +366,18 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1055673809
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1055673805}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dc72498bab1687b4c87bb77239e67392, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GAME_MANAGER: {fileID: 341049244}
 --- !u!1 &1163913644
 GameObject:
   m_ObjectHideFlags: 0
