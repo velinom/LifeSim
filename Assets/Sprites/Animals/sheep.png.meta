@@ -1,6 +1,6 @@
 fileFormatVersion: 2
 guid: 56feda77d13cc804bbfcea8a00ba7536
-timeCreated: 1554159514
+timeCreated: 1554329957
 licenseType: Free
 TextureImporter:
   fileIDToRecycleName:
@@ -81,11 +81,11 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 933
-        y: 0
-        width: 982
-        height: 659
+        y: 224
+        width: 390
+        height: 374
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -94,12 +94,12 @@ TextureImporter:
       name: sheep_1
       rect:
         serializedVersion: 2
-        x: 0
-        y: 441
-        width: 1084
-        height: 638
+        x: 162
+        y: 495
+        width: 433
+        height: 420
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []

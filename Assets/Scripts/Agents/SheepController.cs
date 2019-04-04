@@ -11,14 +11,14 @@ public class SheepController : MonoBehaviour {
   // The max speed / accel (Force) for this sheep
   private float MAX_SPEED = 5;
   private float MAX_ACCEL = 10;
-  private float MAX_ROTATION = 90;
-  private float MAX_ANGULAR_ACC = 15;
+  private float MAX_ROTATION = 180;
+  private float MAX_ANGULAR_ACC = 30;
 
   // The radii for the arrive-at behavior
   private float ARRIVE_RADIUS = 0.5f;
   private float SLOW_RADIUS = 3f;
-  private float ROTATE_ARRIVE_RAD = 4;
-  private float ROTATE_SLOW_RAD = 20;
+  private float ROTATE_ARRIVE_RAD = 10;
+  private float ROTATE_SLOW_RAD = 35;
 
   // The force that will be applied to this sheep each frame.
   // This force can come from several different sources and 
@@ -66,7 +66,7 @@ public class SheepController : MonoBehaviour {
     Vector2 mainGoalSteering = new Vector2(-1, -1);
 
     // If within 3 blocks of smell, arrive at smell
-    Vector2 closeBush = getClose(BoardManager.Food.Bush, 3);
+    Vector2 closeBush = getCloseFood(BoardManager.Food.Bush, 3);
     if (closeBush.x >= 0 && closeBush.y >= 0) {
       mainGoalSteering = arriveAt(
         new Vector2(closeBush.x * CELL_SIZE, closeBush.y * CELL_SIZE));
@@ -79,7 +79,7 @@ public class SheepController : MonoBehaviour {
     
     // Wall Avoidence:
     // Cast a ray in front of the sheep to determine if there is a wall there
-
+    Vector2 avoidWallsSteering = calculateWallAvoidence();
 
 
     // The total steering is a weighted sum of the components
@@ -91,24 +91,32 @@ public class SheepController : MonoBehaviour {
   private void calculateRotation() {
     float targetOrientation = Mathf.Rad2Deg * Mathf.Atan2(velocity.y, velocity.x);
     
-    // The target rotation depends on the radii for "arive" and "slow
+    // The target rotation depends on the radii for "arive" and "slow"
     float curOrientation = transform.eulerAngles.z;
     if (curOrientation > 180) curOrientation -= 360;
     float targetRotation = targetOrientation - curOrientation;
     if (Mathf.Abs(targetRotation) < ROTATE_ARRIVE_RAD) {
       targetRotation = 0;
     } else if (Mathf.Abs(targetRotation) < SLOW_RADIUS) {
-      targetRotation = MAX_ROTATION * targetRotation / ROTATE_SLOW_RAD;
+      targetRotation = MAX_ROTATION * targetRotation / ROTATE_ARRIVE_RAD;
     } else {
       targetRotation = targetRotation > 0 ? MAX_ROTATION : -MAX_ROTATION;
     }
+
+    // Clamp target rotation for better behavior
+    if (targetRotation > 180) targetRotation -= 180;
+    if (targetRotation < -180) targetRotation += 360;
 
     // If the sheep is stopped, make it stop rotating
     if (velocity.magnitude < 0.05) {
       targetRotation = -this.rotation;
     }
+    float angSteering = targetRotation - this.rotation;
+    if (angSteering > 180) angSteering -= 360;
+    if (angSteering < -180) angSteering += 360;
 
-    this.angularSteering = targetRotation - this.rotation;
+
+    this.angularSteering = angSteering;
 
   }
 
@@ -139,12 +147,12 @@ public class SheepController : MonoBehaviour {
 
   // Return the location of the first object of the given type within
   // the given distance of the player. If none is found, return (-1, -1)
-  private Vector2 getClose(BoardManager.Food type, int distance) {
+  private Vector2 getCloseFood(BoardManager.Food type, int distance) {
     for (int xOffset = -distance; xOffset < distance + 1; xOffset++) {
       for (int yOffset = -distance; yOffset < distance + 1; yOffset++) {
         int curX = (int)currentCell.x + xOffset;
         int curY = (int)currentCell.y + yOffset;
-        if (curX >= 0 && curX <= GameManager.SIZE && curY >= 0 && curY <= GameManager.SIZE) {
+        if (curX >= 0 && curX < GameManager.SIZE && curY >= 0 && curY < GameManager.SIZE) {
           if (GAME_MANAGER.getFoodArray()[curX, curY] == type) {
             return new Vector2(curX, curY);
           }
@@ -182,6 +190,31 @@ public class SheepController : MonoBehaviour {
     return targetVelocity - this.velocity;
   }
 
+  // Return a steering vector to awoid any walls. Need to avoi High elevation and water.
+  // Done by using short "whisker" ray-casts and moving to a spot normal to the wall
+  // if the whiskers hit something.
+  private Vector2 calculateWallAvoidence() {
+    // Preform the whisker ray-cast
+    RaycastHit2D hit = Physics2D.Raycast(
+      this.transform.position, this.transform.right, 5);
+    
+    Debug.DrawRay(this.transform.position, this.transform.forward, Color.black, 1);
+
+    // If we hit a wall with a whisker
+    if (hit.collider != null) {
+      if (hit.transform.tag == "Water") {
+        Debug.Log("Hit water");
+      } else if (hit.transform.tag == "HighElevation") {
+        Debug.Log("Hit High elevation");
+      } else {
+        Debug.Log("Hit something else");
+      }
+      
+    }
+
+    return new Vector2(0, 0);
+  }
+
   // Uses the transfrom of this GameObject to determine what cell the sheep is 
   // currently in.
   private Vector2 getCurrentCell() {
@@ -215,6 +248,8 @@ public class SheepController : MonoBehaviour {
     if (Mathf.Abs(this.rotation) > MAX_ROTATION) {
       this.rotation = this.rotation > 0 ? MAX_ROTATION : - MAX_ROTATION;
     }
+    if (this.rotation > 180) this.rotation -= 360;
+    if (this.rotation < -180) this.rotation += 360;
 
     // Now apply the steering to the sheep
     this.transform.Translate(this.velocity * Time.deltaTime, Space.World);
