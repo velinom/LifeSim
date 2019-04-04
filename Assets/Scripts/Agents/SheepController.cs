@@ -83,7 +83,7 @@ public class SheepController : MonoBehaviour {
 
 
     // The total steering is a weighted sum of the components
-    this.steering = mainGoalSteering * 0.6f + avoidWallsSteering * 0.4f;
+    this.steering = mainGoalSteering * 0.3f + avoidWallsSteering * 0.7f;
   }
 
   // Calculate rotation, Rotatoin is always in the direction of the 
@@ -129,7 +129,7 @@ public class SheepController : MonoBehaviour {
       for (int yOffset = -1; yOffset < 2; yOffset++) {
         int curX = (int)currentCell.x + xOffset;
         int curY = (int)currentCell.y + yOffset;
-        if (curX >= 0 && curX <= GameManager.SIZE && curY >= 0 && curY <= GameManager.SIZE) {
+        if (curX >= 0 && curX < GameManager.SIZE && curY >= 0 && curY < GameManager.SIZE) {
           double curSmellVal = GAME_MANAGER.getSmellArray()[curX, curY].getSmell(type);
           Vector2 curSmellCell = new Vector2(curX, curY);
           Vector2 curDirection = curSmellCell - currentCell;
