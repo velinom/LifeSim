@@ -83,7 +83,7 @@ public class SheepController : MonoBehaviour {
 
 
     // The total steering is a weighted sum of the components
-    this.steering = mainGoalSteering;
+    this.steering = mainGoalSteering * 0.6f + avoidWallsSteering * 0.4f;
   }
 
   // Calculate rotation, Rotatoin is always in the direction of the 
@@ -114,10 +114,7 @@ public class SheepController : MonoBehaviour {
     float angSteering = targetRotation - this.rotation;
     if (angSteering > 180) angSteering -= 360;
     if (angSteering < -180) angSteering += 360;
-
-
     this.angularSteering = angSteering;
-
   }
 
   // Assess the smell of the given type in the 3x3 area surounding the agent,
@@ -197,19 +194,21 @@ public class SheepController : MonoBehaviour {
     // Preform the whisker ray-cast
     RaycastHit2D hit = Physics2D.Raycast(
       this.transform.position, this.transform.right, 5);
-    
-    Debug.DrawRay(this.transform.position, this.transform.forward, Color.black, 1);
+
+    Debug.DrawRay(this.transform.position, this.transform.right, Color.black);
 
     // If we hit a wall with a whisker
     if (hit.collider != null) {
-      if (hit.transform.tag == "Water") {
-        Debug.Log("Hit water");
-      } else if (hit.transform.tag == "HighElevation") {
-        Debug.Log("Hit High elevation");
-      } else {
-        Debug.Log("Hit something else");
+      if (hit.transform.tag == "Water" || hit.transform.tag == "HighElevation") {
+        // Get a point normal to the wall at the point the colider hit.
+        Vector2 normal = hit.normal.normalized;
+        Debug.DrawRay(hit.point, hit.normal, Color.black);
+        Vector2 seekPoint = hit.point + hit.normal * 1.5f;
+
+        
+
+        return arriveAt(seekPoint);
       }
-      
     }
 
     return new Vector2(0, 0);
