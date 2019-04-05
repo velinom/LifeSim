@@ -308,51 +308,77 @@ public class BoardManager : MonoBehaviour {
 						curLocSmell.addToSmell(SmellType.TreeFood, 1.0 / (distance * distance));
 					}
 				}
+				smellArray[x, y] = curLocSmell;
 			}
 		}
 
 		// Now for bushes, the smell must "stop" at high-elevation and water tiles
 		// this means we have to acutally propagate the smell through the environment 
 		// this can be costly but is necessary for good behavior from the agents.
-		Queue<PropagatingSmell> openList = new Queue<PropagatingSmell>();
+		List<TileType> impassable = new List<TileType> { TileType.High, TileType.Water };
 		foreach (Vector2 bushLoc in this.bushLocations) {
-			openList.Clear();
-			openList.add(bushLoc);
-
-			while (openList.Count > 0) {
-
-			}
+			propagateSmellFromRoot(bushLoc, SmellType.GroundFood, impassable);
 		}
-		
+	}
 
-				// Loop over bushes and add the smell from each bush to the current tile
-				foreach (Vector2 loc in bushLocations) {
-					float deltaX = Math.Abs(loc.x - x);
-					float deltaY = Math.Abs(loc.y - y);
-					double distance = Math.Sqrt(deltaX * deltaX + deltaY * deltaY);
+	// Propogate the smell from a single object radiating the smell of the given
+	// type throughout the whole map. Allows for the given smell not to be able
+	// to pass through tile-types from the given "impassable" list
+	private void propagateSmellFromRoot(Vector2 root, SmellType type, List<TileType> impassable) {
+		Queue<PropagatingSmell> openList = new Queue<PropagatingSmell>();
+		List<Vector2> closedList = new List<Vector2>();
+		openList.Enqueue(new PropagatingSmell(1, root));
 
-					if (distance < 0.1) {
-						curLocSmell.addToSmell(SmellType.GroundFood, 1);
-					} else {
-						curLocSmell.addToSmell(SmellType.GroundFood, 1.0 / (distance * distance));
-					}
+		while (openList.Count > 0) {
+			PropagatingSmell current = openList.Dequeue();
+
+			// If we've already reached this cell, move on
+			if (closedList.Contains(current.location)) {
+				Debug.Log("Skipping");
+				continue;
+			}
+
+			// Set the smell in this cell, add it to closed list
+			int curX = (int)current.location.x;
+			int curY = (int)current.location.y;
+			float smellValue = 1.0f / (current.cellsAway * current.cellsAway);
+			//Debug.Log("Setting at : " + curX + ", " + curY);
+			smellArray[curX, curY].addToSmell(type, smellValue);
+			closedList.Add(new Vector2(curX, curY));
+
+			// Add the neighbors of this cell if they aren't in the impassable list
+			// Up Neieghbor
+			if (curY < GameManager.SIZE - 1) {
+				TileType neighborType = boardArray[curX, curY +1];
+				if (!impassable.Contains(neighborType)) {
+					openList.Enqueue(new PropagatingSmell(current.cellsAway + 1,
+						new Vector2(curX, curY + 1)));
 				}
-
-				// Loop over the water tiles and add the smell form each tile to the current tile
-				foreach (Vector2 loc in waterLocations) {
-					float deltaX = Math.Abs(loc.x - x);
-					float deltaY = Math.Abs(loc.y - y);
-					double distance = Math.Sqrt(deltaX * deltaX + deltaY * deltaY);
-
-					if (distance < 0.1) {
-						curLocSmell.addToSmell(SmellType.Water, 1);
-					} else {
-						curLocSmell.addToSmell(SmellType.Water, 1.0 / (distance * distance));
-					}
+			}
+			// Right Neighbor
+			if (curX < GameManager.SIZE - 1) {
+				TileType neighborType = boardArray[curX + 1, curY];
+				if (!impassable.Contains(neighborType)) {
+					openList.Enqueue(new PropagatingSmell(current.cellsAway + 1,
+						new Vector2(curX + 1, curY)));
 				}
-
-				this.smellArray[x, y] = curLocSmell;
-			} 
+			}
+			// Down Neighbor
+			if (curY > 0) {
+				TileType neighborType = boardArray[curX, curY - 1];
+				if (!impassable.Contains(neighborType)) {
+					openList.Enqueue(new PropagatingSmell(current.cellsAway + 1, 
+						new Vector2(curX, curY - 1)));
+				}
+			}
+			// Left Neighbor
+			if (curX > 0) {
+				TileType neighborType = boardArray[curX - 1, curY];
+				if (!impassable.Contains(neighborType)) {
+					openList.Enqueue(new PropagatingSmell(current.cellsAway + 1, 
+						new Vector2(curX - 1, curY)));
+				}
+			}
 		}
 	}
 
@@ -398,7 +424,7 @@ public class BoardManager : MonoBehaviour {
 
 		// Setup the smells and store them for easy access in game
 		propagateSmells();
-		//displaySmells(SmellType.GroundFood);
+		displaySmells(SmellType.GroundFood);
 	}
 
 	/*
