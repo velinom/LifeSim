@@ -9,16 +9,19 @@ public class SheepController : MonoBehaviour {
   private float CELL_SIZE = GameManager.CELL_SIZE;
 
   // The max speed / accel (Force) for this sheep
-  private float MAX_SPEED = 5;
+  private float MAX_SPEED = 2;
   private float MAX_ACCEL = 10;
-  private float MAX_ROTATION = 180;
+  private float MAX_ROTATION = 179;
   private float MAX_ANGULAR_ACC = 30;
 
   // The radii for the arrive-at behavior
   private float ARRIVE_RADIUS = 0.5f;
   private float SLOW_RADIUS = 3f;
-  private float ROTATE_ARRIVE_RAD = 10;
-  private float ROTATE_SLOW_RAD = 35;
+  private float ROTATE_ARRIVE_RAD = 15;
+  private float ROTATE_SLOW_RAD = 45;
+
+  // Parameters for wall avoidence
+  private float RAY_LENGTH = 2;
 
   // The force that will be applied to this sheep each frame.
   // This force can come from several different sources and 
@@ -33,6 +36,9 @@ public class SheepController : MonoBehaviour {
   // The current velocity and rotation of the sheep
   private Vector2 velocity;
   private float rotation;
+
+  // Insistance
+  
 
   // Setup this sheep by initializing fields
   void Start() {
@@ -193,7 +199,7 @@ public class SheepController : MonoBehaviour {
   private Vector2 calculateWallAvoidence() {
     // Preform the whisker ray-cast
     RaycastHit2D hit = Physics2D.Raycast(
-      this.transform.position, this.transform.right, 5);
+      this.transform.position, this.transform.right, RAY_LENGTH);
 
     Debug.DrawRay(this.transform.position, this.transform.right, Color.black);
 

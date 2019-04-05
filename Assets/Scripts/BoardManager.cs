@@ -281,15 +281,17 @@ public class BoardManager : MonoBehaviour {
 		}
 	}
 
-	// Propagates smells from the food and water tiles. These smells are static since trees and 
-	// plants will be perminantly fixed for this iteration of th game.
-	// Populates a 2x2 array that mirors the grid with smells.
+	// Need to propagate each smell from its source (potentially ignoring some terain types)
+	// to determine how the smell fills the board. This is expensive but (mostly) only done
+	// once at the beginning of the game.
 	private void propagateSmells() {
 		// Setup the smell-gird (A 2x2 array of Smell objects)
-		smellArray = new Smell[GameManager.SIZE, GameManager.SIZE];
+		this.smellArray = new Smell[GameManager.SIZE, GameManager.SIZE];
 
 		// Begin by propagating the trees
 		// Loop over all tiles and determine the smell from each tree at that tile
+		// This is the "easy" one since birds will smell trees and don't need to worry
+		// about the smell being blocked by high-elevation or water.
 		for (int x = 0; x < GameManager.SIZE; x++) {
 			for (int y = 0; y < GameManager.SIZE; y++) {
 				// Loop over each tree and add the smell from that tree to the Smell object
@@ -306,6 +308,22 @@ public class BoardManager : MonoBehaviour {
 						curLocSmell.addToSmell(SmellType.TreeFood, 1.0 / (distance * distance));
 					}
 				}
+			}
+		}
+
+		// Now for bushes, the smell must "stop" at high-elevation and water tiles
+		// this means we have to acutally propagate the smell through the environment 
+		// this can be costly but is necessary for good behavior from the agents.
+		Queue<PropagatingSmell> openList = new Queue<PropagatingSmell>();
+		foreach (Vector2 bushLoc in this.bushLocations) {
+			openList.Clear();
+			openList.add(bushLoc);
+
+			while (openList.Count > 0) {
+
+			}
+		}
+		
 
 				// Loop over bushes and add the smell from each bush to the current tile
 				foreach (Vector2 loc in bushLocations) {
@@ -333,7 +351,7 @@ public class BoardManager : MonoBehaviour {
 					}
 				}
 
-				smellArray[x, y] = curLocSmell;
+				this.smellArray[x, y] = curLocSmell;
 			} 
 		}
 	}
@@ -380,7 +398,7 @@ public class BoardManager : MonoBehaviour {
 
 		// Setup the smells and store them for easy access in game
 		propagateSmells();
-		//displaySmells(SmellType.Water);
+		//displaySmells(SmellType.GroundFood);
 	}
 
 	/*
