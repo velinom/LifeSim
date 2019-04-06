@@ -326,7 +326,7 @@ public class BoardManager : MonoBehaviour {
 	// to pass through tile-types from the given "impassable" list
 	private void propagateSmellFromRoot(Vector2 root, SmellType type, List<TileType> impassable) {
 		Queue<PropagatingSmell> openList = new Queue<PropagatingSmell>();
-		List<Vector2> closedList = new List<Vector2>();
+		HashSet<Vector2> closedList = new HashSet<Vector2>();
 		openList.Enqueue(new PropagatingSmell(1, root));
 
 		while (openList.Count > 0) {
@@ -334,7 +334,6 @@ public class BoardManager : MonoBehaviour {
 
 			// If we've already reached this cell, move on
 			if (closedList.Contains(current.location)) {
-				Debug.Log("Skipping");
 				continue;
 			}
 
@@ -399,7 +398,7 @@ public class BoardManager : MonoBehaviour {
 				newText.color = new Color(0, 0, 0);
 				
 				RectTransform textTransform = newText.GetComponent<RectTransform>();
-				textTransform.sizeDelta = new Vector2(45, 25);
+				textTransform.sizeDelta = new Vector2(36, 25);
 				textTransform.anchorMin = new Vector2(0, 0);
 				textTransform.anchorMax = new Vector2(0, 0);
 				textTransform.pivot = new Vector2(0, 0);
