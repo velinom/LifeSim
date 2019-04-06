@@ -47,6 +47,26 @@ public abstract class BaseAgent : MonoBehaviour {
     return new Vector2(-1, -1);
   }
 
+  // Return the location of the first object of the given tile type within the given 
+  // distance of the location
+  public Vector2 getCloseTile(BoardManager.TileType type, int distance,
+                               Vector2 currentCell, BoardManager.TileType[, ] boardArray) {
+    for (int xOffset = -distance; xOffset < distance + 1; xOffset++) {
+      for (int yOffset = -distance; yOffset < distance + 1; yOffset++) {
+        int curX = (int)currentCell.x + xOffset;
+        int curY = (int)currentCell.y + yOffset;
+        if (curX >= 0 && curX < GameManager.SIZE && curY >= 0 && curY < GameManager.SIZE) {
+          if (boardArray[curX, curY] == type) {
+            return new Vector2(curX, curY);
+          }
+        }
+      }
+    }
+
+    // If we didn't find any tiles of the given type, return "dummy" vector (-1, -1)
+    return new Vector2(-1, -1);
+  }
+
   // Calculates the force needed to make the agent slowly arrive at the
   // given location and gradualy come to a stop
   public Vector2 arriveAt(Vector2 targetLoc, Vector2 currentLoc, Vector2 currentVel, 

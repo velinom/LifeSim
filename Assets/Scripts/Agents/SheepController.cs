@@ -51,6 +51,9 @@ public class SheepController : BaseAgent {
   // List of possible actions that the sheep can take
   private List<Action> actions;
 
+  // The action that the sheep is currently taking
+  private Action goal;
+
   // The insistance object for this sheep, the sheep's goal is to minimize 
   // the values in this object.
   private Insistance insistance;
@@ -61,7 +64,15 @@ public class SheepController : BaseAgent {
     this.velocity = new Vector2(0, 0);
     this.rotation = 0;
 
-    // Setup the insistance fields
+    // Setup the insistance fields, growth rates, etc.
+    setupInsistance();
+
+    // Setup the actions that the sheep can take
+    setupActions();
+  }
+
+  // Initialize the fields that the sheep needs for insistance calculations
+  private void setupInsistance() {
     List<InsistanceType> types = new List<InsistanceType> { 
       InsistanceType.Food, InsistanceType.Water, InsistanceType.Sleep, InsistanceType.Joy
     };
@@ -71,12 +82,42 @@ public class SheepController : BaseAgent {
     growthRates.Add(InsistanceType.Water, 0.1f);
     growthRates.Add(InsistanceType.Sleep, 0.02f);
     growthRates.Add(InsistanceType.Joy, 0.05f);
-    
+
     Dictionary<InsistanceType, float> insistances = new Dictionary<InsistanceType, float>();
     foreach (InsistanceType type in types) {
       insistances.Add(type, Random.Range(0.0f, MAX_START_INSISTANCE));
     }
     this.insistance = new Insistance(types, growthRates, insistances);
+  }
+
+  // Setup the fields that allow the sheep to take actions and have goals
+  private void setupActions() {
+    this.actions = new List<Action>();
+
+    // Setup the seek food action
+    Dictionary<InsistanceType, float> seekFoodEffects = new Dictionary<InsistanceType, float>();
+    seekFoodEffects.Add(InsistanceType.Food, -5);
+    Action seekFood = new Action(seekFoodEffects, 10, "Seek Food");
+    this.actions.Add(seekFood);
+
+    // Setup the seek water action
+    Dictionary<InsistanceType, float> seekWaterEffects = new Dictionary<InsistanceType, float>();
+    seekWaterEffects.Add(InsistanceType.Water, -5);
+    Action seekWater = new Action(seekWaterEffects, 15, "Seek Water");
+    this.actions.Add(seekWater);
+
+    // Setup the sleep action
+    Dictionary<InsistanceType, float> sleepEffects = new Dictionary<InsistanceType, float>();
+    sleepEffects.Add(InsistanceType.Sleep, -15);
+    Action sleep = new Action(sleepEffects, 60, "Sleep");
+    //this.actions.Add(sleep);
+
+    // Setup the wander action
+    Dictionary<InsistanceType, float> wanderEffects = new Dictionary<InsistanceType, float>();
+    wanderEffects.Add(InsistanceType.Joy, -7);
+    wanderEffects.Add(InsistanceType.Sleep, 2);    
+    Action wander = new Action(wanderEffects, 40, "Wander");
+    //this.actions.Add(wander);
   }
 	
 	// Update is called once per frame used to calculate the steering 
@@ -84,6 +125,10 @@ public class SheepController : BaseAgent {
 	void Update () {
     // Update the current cell so that it is known the whole update
     this.currentCell = getCurrentCell();
+
+    // Determine the Goal or Action that the Sheep will take
+    // This goal is set into the field giving the type of action
+    if (this.goal == null) determineGoal();
 
     // Calculate the steering, this includes the high level goal steering as
     // well as lower level steering to avoid trees / rocks etc.
@@ -96,26 +141,57 @@ public class SheepController : BaseAgent {
     // Apply the steering to actually move the sheep, both linear and 
     // rotational steering are applied here.
     applySteering();
+
+    // Update insistances because some time has passed
+
+  }
+
+  // Determine the goal and action that the sheep should take. The goal is stored in 
+  // the goal field and is used to determine the stearing on this update
+  private void determineGoal() {
+    // Loop over all available actions and determine the one that minimizes the 
+    // sum of insistances sqared. Use the estimated time to complete each action
+    // to discount the other actions when calculating
+    float bestValue = float.MaxValue;
+    Action bestAction = null;
+    foreach (Action action in this.actions) {
+      // Begin by cloning the insistance object so it isn't mutated in the calculations
+      Insistance insistanceCopy = this.insistance.deepCopy();
+
+      // This method also uses the estimated time to determine how much the insistances
+      // will increase while this action is being carried out.
+      action.takeActionAtTime(insistanceCopy, action.estTimeSeconds);
+      float totalInsistance = insistanceCopy.totalInsistance(); // sum of squares
+      if (totalInsistance < bestValue) {
+        bestValue = totalInsistance;
+        bestAction = action;
+      }
+    }
+
+    Debug.Log("A sheep with: hunger:" + this.insistance.insistances[InsistanceType.Food] +
+              ", thirst:" + this.insistance.insistances[InsistanceType.Water] +
+              ", sleep:" + this.insistance.insistances[InsistanceType.Sleep] +
+              ", joy:" + this.insistance.insistances[InsistanceType.Joy] +
+              ", Decided to " + bestAction.name);
+
+    this.goal = bestAction;
   }
 
   // Determine the force that should be applied to move the sheep on this 
   // frame
   private void calculateSteering() {
-    // The steering toward the sheeps current goal, to be set below.
+    // Calculate the main steering towrad the sheep's goal
     Vector2 mainGoalSteering = new Vector2(-1, -1);
-
-    // If within 3 blocks of smell, arrive at smell
-    Vector2 closeBush = getCloseFood(BoardManager.Food.Bush, 3,
-      currentCell, GAME_MANAGER.getFoodArray());
-    if (closeBush.x >= 0 && closeBush.y >= 0) {
-      mainGoalSteering = arriveAt(
-        new Vector2(closeBush.x * CELL_SIZE, closeBush.y * CELL_SIZE),
-        new Vector2(currentCell.x * CELL_SIZE, currentCell.y * CELL_SIZE),
-        velocity, SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
+    if (this.goal.name == "Seek Food") {
+      mainGoalSteering = seekFood();
+    } else if (this.goal.name == "Seek Water") {
+      mainGoalSteering = seekWater();
+    } else if (this.goal.name == "Sleep"){
+      //mainGoalSteering = sleep();
+    } else if (this.goal.name == "Wander") {
+      //mainGoalSteering = wander();
     } else {
-      // Otherwise, follow the smell until within 3 blocks
-      mainGoalSteering = this.getDirectionOfSmell(SmellType.GroundFood,
-        currentCell, GAME_MANAGER.getSmellArray()) * MAX_ACCEL;
+      Debug.Log("A sheep has a goal not recognized by the steering method: " + this.goal.name);
     }
 
     // Now that main steering has been calculated, get lower-level steerings 
@@ -124,9 +200,68 @@ public class SheepController : BaseAgent {
     // Cast a ray in front of the sheep to determine if there is a wall there
     Vector2 avoidWallsSteering = calculateWallAvoidence();
 
-
     // The total steering is a weighted sum of the components
     this.steering = mainGoalSteering * 0.3f + avoidWallsSteering * 0.7f;
+  }
+
+  // ACTION METHOD: Returns the main steering vector to accomplish this action, 
+  // allong with setting this.action to null and updating insistances when the 
+  // action is finished
+  private Vector2 seekFood() {
+    Vector2 goalSteering = new Vector2(-1, -1);
+
+    // Check if within 3 blocks of a bush (represents the sheep seeing the bush and going)
+    Vector2 closeBush = getCloseFood(BoardManager.Food.Bush, 3, 
+                                     currentCell, GAME_MANAGER.getFoodArray());
+    if (closeBush.x >= 0 && closeBush.y >= 0) {
+      goalSteering = arriveAt(
+        new Vector2(closeBush.x * CELL_SIZE, closeBush.y * CELL_SIZE),
+        new Vector2(currentCell.x * CELL_SIZE, currentCell.y * CELL_SIZE),
+        velocity, SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
+
+      // If the sheep has reached the bush, update insistances and set goal to null
+      if (closeBush.x == this.currentCell.x && closeBush.y == this.currentCell.y) {
+        this.goal.apply(this.insistance);
+        this.goal = null;
+      }
+    }
+    // Otherwise, follow the smell until within 3 blocks
+    else {
+      goalSteering = this.getDirectionOfSmell(SmellType.GroundFood,
+        currentCell, GAME_MANAGER.getSmellArray()) * MAX_ACCEL;
+    }
+
+    return goalSteering;
+  }
+
+  // ACTION METHOD: Returns the main steering vector to accomplish this action, 
+  // allong with setting this.action to null and updating insistances when the 
+  // action is finished
+  private Vector2 seekWater() {
+    Vector2 goalSteering = new Vector2(-1, -1);
+
+    // Check if within 3 blocks of a water tile (represents the sheep seeing the water and going)
+    Vector2 closeWater = getCloseTile(BoardManager.TileType.Water, 3, 
+                                     currentCell, GAME_MANAGER.getBoardArray());
+    if (closeWater.x >= 0 && closeWater.y >= 0) {
+      goalSteering = arriveAt(
+        new Vector2(closeWater.x * CELL_SIZE, closeWater.y * CELL_SIZE),
+        new Vector2(currentCell.x * CELL_SIZE, currentCell.y * CELL_SIZE),
+        velocity, SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
+
+      // If the sheep has reached the water, update insistances and set goal to null
+      if (closeWater.x == this.currentCell.x && closeWater.y == this.currentCell.y) {
+        this.goal.apply(this.insistance);
+        this.goal = null;
+      }
+    }
+    // Otherwise, follow the smell until within 3 blocks
+    else {
+      goalSteering = this.getDirectionOfSmell(SmellType.Water,
+        currentCell, GAME_MANAGER.getSmellArray()) * MAX_ACCEL;
+    }
+
+    return goalSteering;
   }
 
   // Calculate rotation, Rotatoin is always in the direction of the 
@@ -140,7 +275,7 @@ public class SheepController : BaseAgent {
     float targetRotation = targetOrientation - curOrientation;
     if (Mathf.Abs(targetRotation) < ROTATE_ARRIVE_RAD) {
       targetRotation = 0;
-    } else if (Mathf.Abs(targetRotation) < SLOW_RADIUS) {
+    } else if (Mathf.Abs(targetRotation) < ROTATE_SLOW_RAD) {
       targetRotation = MAX_ROTATION * targetRotation / ROTATE_ARRIVE_RAD;
     } else {
       targetRotation = targetRotation > 0 ? MAX_ROTATION : -MAX_ROTATION;

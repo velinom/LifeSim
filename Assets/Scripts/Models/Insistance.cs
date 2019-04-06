@@ -59,5 +59,22 @@ namespace Models {
 
       return totalInsistance;
     }
+
+    // Create a deep copy of this insistance
+    public Insistance deepCopy() {
+      // Copy the insistances dictionary
+      Dictionary<InsistanceType, float> insistancesCopy = new Dictionary<InsistanceType, float>();
+      foreach (KeyValuePair<InsistanceType, float> entry in this.insistances) {
+        insistancesCopy.Add(entry.Key, entry.Value);
+      }
+
+      // Copy the growth-rate dictionary
+      Dictionary<InsistanceType, float> growthRatesCopy = new Dictionary<InsistanceType, float>();
+      foreach (KeyValuePair<InsistanceType, float> entry in this.growthRates) {
+        growthRatesCopy.Add(entry.Key, entry.Value);
+      }
+
+      return new Insistance(this.insistanceTypes, growthRatesCopy, insistancesCopy);
+    }
   }
 }

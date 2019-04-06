@@ -13,6 +13,19 @@ namespace Models {
     // negative.
     public Dictionary<InsistanceType, float> effects;
 
+    // The estimated time in seconds that it will take to satisfy this action
+    public int estTimeSeconds;
+
+    // The name of this action for debugging purposes
+    public string name;
+
+    // Constructor that sets the effects and estimated time
+    public Action(Dictionary<InsistanceType, float> effects, int estTimeSec, string name) {
+      this.effects = effects;
+      this.estTimeSeconds = estTimeSec;
+      this.name = name;
+    }
+
     // Apply this action to an insistance object, it will mutate the object by changing
     // The values and updating all other values according to the given time in seconds.
     // Mostly used when calculating what the insistance WILL BE after an action is taken.
