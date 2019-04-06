@@ -1,7 +1,7 @@
 using Models;
 using UnityEngine;
 
-public class SheepController : MonoBehaviour {
+public class SheepController : BaseAgent {
 
   // Reference to the game manager, contains map and smell info
   // as well as all constants needed from the manager
@@ -37,8 +37,12 @@ public class SheepController : MonoBehaviour {
   private Vector2 velocity;
   private float rotation;
 
-  // Insistance
-  
+  // Insistance fields
+  // Different insistance types
+  private enum InsistanceTypes { Sleep, Food, Water, Joy }
+
+  // List of possible actions that the sheep can take 
+
 
   // Setup this sheep by initializing fields
   void Start() {
@@ -72,13 +76,17 @@ public class SheepController : MonoBehaviour {
     Vector2 mainGoalSteering = new Vector2(-1, -1);
 
     // If within 3 blocks of smell, arrive at smell
-    Vector2 closeBush = getCloseFood(BoardManager.Food.Bush, 3);
+    Vector2 closeBush = getCloseFood(BoardManager.Food.Bush, 3,
+      currentCell, GAME_MANAGER.getFoodArray());
     if (closeBush.x >= 0 && closeBush.y >= 0) {
       mainGoalSteering = arriveAt(
-        new Vector2(closeBush.x * CELL_SIZE, closeBush.y * CELL_SIZE));
+        new Vector2(closeBush.x * CELL_SIZE, closeBush.y * CELL_SIZE),
+        new Vector2(currentCell.x * CELL_SIZE, currentCell.y * CELL_SIZE),
+        velocity, SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
     } else {
       // Otherwise, follow the smell until within 3 blocks
-      mainGoalSteering = getDirectionOf(SmellType.GroundFood) * MAX_ACCEL;
+      mainGoalSteering = this.getDirectionOfSmell(SmellType.GroundFood,
+        currentCell, GAME_MANAGER.getSmellArray()) * MAX_ACCEL;
     }
 
     // Now that main steering has been calculated, get lower-level steerings 
@@ -123,76 +131,6 @@ public class SheepController : MonoBehaviour {
     this.angularSteering = angSteering;
   }
 
-  // Assess the smell of the given type in the 3x3 area surounding the agent,
-  // Determine the direction that the smell is coming from and return a 2D 
-  // vector in that direction
-  private Vector2 getDirectionOf(SmellType type) {
-    Vector2 smellDirection = new Vector2(0, 0);
-
-    // Loop over all the cells adjacent to the sheep and determine
-    // the direction that the smell is strongest
-    for (int xOffset = -1; xOffset < 2; xOffset++) {
-      for (int yOffset = -1; yOffset < 2; yOffset++) {
-        int curX = (int)currentCell.x + xOffset;
-        int curY = (int)currentCell.y + yOffset;
-        if (curX >= 0 && curX < GameManager.SIZE && curY >= 0 && curY < GameManager.SIZE) {
-          double curSmellVal = GAME_MANAGER.getSmellArray()[curX, curY].getSmell(type);
-          Vector2 curSmellCell = new Vector2(curX, curY);
-          Vector2 curDirection = curSmellCell - currentCell;
-          smellDirection = smellDirection + (curDirection * (float)curSmellVal);
-        }
-      }
-    }
-    
-    smellDirection.Normalize();
-    return smellDirection;
-  }
-
-  // Return the location of the first object of the given type within
-  // the given distance of the player. If none is found, return (-1, -1)
-  private Vector2 getCloseFood(BoardManager.Food type, int distance) {
-    for (int xOffset = -distance; xOffset < distance + 1; xOffset++) {
-      for (int yOffset = -distance; yOffset < distance + 1; yOffset++) {
-        int curX = (int)currentCell.x + xOffset;
-        int curY = (int)currentCell.y + yOffset;
-        if (curX >= 0 && curX < GameManager.SIZE && curY >= 0 && curY < GameManager.SIZE) {
-          if (GAME_MANAGER.getFoodArray()[curX, curY] == type) {
-            return new Vector2(curX, curY);
-          }
-        }
-      }
-    }
-
-    return new Vector2(-1, -1);
-  }
-
-  // Calculates the force needed to make the sheep slowly arrive at the
-  // given location and gradualy come to a stop
-  private Vector2 arriveAt(Vector2 targetLoc) {
-    Vector2 location2d = new Vector2(transform.position.x, transform.position.y);
-    float distToTarget = (targetLoc - location2d).magnitude;
-
-    // Three distance cases from slow-radius and target-radius
-    // Compute the target velocity in each case
-    float targetSpeed;
-    if (distToTarget > SLOW_RADIUS) {
-      targetSpeed = MAX_SPEED;
-    } else if (distToTarget > ARRIVE_RADIUS) {
-      targetSpeed = (distToTarget / SLOW_RADIUS) * MAX_SPEED;
-    } else {
-      targetSpeed = 0;
-    }
-
-    // Get the target velocity including direction
-    Vector2 targetVelocity = (targetLoc - location2d);
-    targetVelocity.Normalize();
-    targetVelocity = targetVelocity * targetSpeed;
-
-    // The target acceleration is the difference between the current velocity
-    // and the target velocity
-    return targetVelocity - this.velocity;
-  }
-
   // Return a steering vector to awoid any walls. Need to avoi High elevation and water.
   // Done by using short "whisker" ray-casts and moving to a spot normal to the wall
   // if the whiskers hit something.
@@ -201,19 +139,15 @@ public class SheepController : MonoBehaviour {
     RaycastHit2D hit = Physics2D.Raycast(
       this.transform.position, this.transform.right, RAY_LENGTH);
 
-    Debug.DrawRay(this.transform.position, this.transform.right, Color.black);
-
     // If we hit a wall with a whisker
     if (hit.collider != null) {
       if (hit.transform.tag == "Water" || hit.transform.tag == "HighElevation") {
         // Get a point normal to the wall at the point the colider hit.
         Vector2 normal = hit.normal.normalized;
-        Debug.DrawRay(hit.point, hit.normal, Color.black);
         Vector2 seekPoint = hit.point + hit.normal * 1.5f;
 
-        
-
-        return arriveAt(seekPoint);
+        Vector2 curLoc = new Vector2(currentCell.x * CELL_SIZE, currentCell.y * CELL_SIZE);
+        return arriveAt(seekPoint, curLoc, this.velocity, SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
       }
     }
 

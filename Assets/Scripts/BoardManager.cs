@@ -319,6 +319,13 @@ public class BoardManager : MonoBehaviour {
 		foreach (Vector2 bushLoc in this.bushLocations) {
 			propagateSmellFromRoot(bushLoc, SmellType.GroundFood, impassable);
 		}
+
+		// For wat the smell should stop when passing through mountains but not on other
+		// water tiles
+		impassable = new List<TileType> { TileType.High };
+		foreach (Vector2 waterLoc in this.waterLocations) {
+			propagateSmellFromRoot(waterLoc, SmellType.Water, impassable);
+		}
 	}
 
 	// Propogate the smell from a single object radiating the smell of the given
@@ -333,9 +340,7 @@ public class BoardManager : MonoBehaviour {
 			PropagatingSmell current = openList.Dequeue();
 
 			// If we've already reached this cell, move on
-			if (closedList.Contains(current.location)) {
-				continue;
-			}
+			if (closedList.Contains(current.location)) continue;
 
 			// Set the smell in this cell, add it to closed list
 			int curX = (int)current.location.x;
@@ -423,7 +428,7 @@ public class BoardManager : MonoBehaviour {
 
 		// Setup the smells and store them for easy access in game
 		propagateSmells();
-		displaySmells(SmellType.GroundFood);
+		//displaySmells(SmellType.GroundFood);
 	}
 
 	/*
