@@ -1,5 +1,8 @@
 using Models;
+using System.Collections.Generic;
 using UnityEngine;
+
+using Random = UnityEngine.Random;
 
 public class SheepController : BaseAgent {
 
@@ -9,19 +12,23 @@ public class SheepController : BaseAgent {
   private float CELL_SIZE = GameManager.CELL_SIZE;
 
   // The max speed / accel (Force) for this sheep
-  private float MAX_SPEED = 2;
-  private float MAX_ACCEL = 10;
-  private float MAX_ROTATION = 179;
-  private float MAX_ANGULAR_ACC = 30;
+  private const float MAX_SPEED = 2;
+  private const float MAX_ACCEL = 10;
+  private const float MAX_ROTATION = 179;
+  private const float MAX_ANGULAR_ACC = 30;
 
   // The radii for the arrive-at behavior
-  private float ARRIVE_RADIUS = 0.5f;
-  private float SLOW_RADIUS = 3f;
-  private float ROTATE_ARRIVE_RAD = 15;
-  private float ROTATE_SLOW_RAD = 45;
+  private const float ARRIVE_RADIUS = 0.5f;
+  private const float SLOW_RADIUS = 3f;
+  private const float ROTATE_ARRIVE_RAD = 15;
+  private const float ROTATE_SLOW_RAD = 45;
 
   // Parameters for wall avoidence
-  private float RAY_LENGTH = 2;
+  private const float RAY_LENGTH = 2;
+
+  // The max insistance any type can start at, insistances start at a
+  // random value below this one.
+  private const float MAX_START_INSISTANCE = 5.0f; 
 
   // The force that will be applied to this sheep each frame.
   // This force can come from several different sources and 
@@ -37,17 +44,39 @@ public class SheepController : BaseAgent {
   private Vector2 velocity;
   private float rotation;
 
-  // Insistance fields
-  // Different insistance types
+  // INSISTANCES
+  // Different insistance types speciffic to sheep
   private enum InsistanceTypes { Sleep, Food, Water, Joy }
 
-  // List of possible actions that the sheep can take 
+  // List of possible actions that the sheep can take
+  private List<Action> actions;
 
+  // The insistance object for this sheep, the sheep's goal is to minimize 
+  // the values in this object.
+  private Insistance insistance;
 
   // Setup this sheep by initializing fields
   void Start() {
-    velocity = new Vector2(0, 0);
-    rotation = 0;
+    // Setup the movement fields
+    this.velocity = new Vector2(0, 0);
+    this.rotation = 0;
+
+    // Setup the insistance fields
+    List<InsistanceType> types = new List<InsistanceType> { 
+      InsistanceType.Food, InsistanceType.Water, InsistanceType.Sleep, InsistanceType.Joy
+    };
+
+    Dictionary<InsistanceType, float> growthRates = new Dictionary<InsistanceType, float>();
+    growthRates.Add(InsistanceType.Food, 0.1f);
+    growthRates.Add(InsistanceType.Water, 0.1f);
+    growthRates.Add(InsistanceType.Sleep, 0.02f);
+    growthRates.Add(InsistanceType.Joy, 0.05f);
+    
+    Dictionary<InsistanceType, float> insistances = new Dictionary<InsistanceType, float>();
+    foreach (InsistanceType type in types) {
+      insistances.Add(type, Random.Range(0.0f, MAX_START_INSISTANCE));
+    }
+    this.insistance = new Insistance(types, growthRates, insistances);
   }
 	
 	// Update is called once per frame used to calculate the steering 
