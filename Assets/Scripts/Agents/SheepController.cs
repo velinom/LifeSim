@@ -90,8 +90,8 @@ public class SheepController : BaseAgent {
     Dictionary<InsistanceType, float> growthRates = new Dictionary<InsistanceType, float>();
     growthRates.Add(InsistanceType.Food, 0.1f);
     growthRates.Add(InsistanceType.Water, 0.1f);
-    growthRates.Add(InsistanceType.Sleep, 0.1f);
-    growthRates.Add(InsistanceType.Joy, 0.1f);
+    growthRates.Add(InsistanceType.Sleep, 0.05f);
+    growthRates.Add(InsistanceType.Joy, 0.15f);
 
     Dictionary<InsistanceType, float> insistances = new Dictionary<InsistanceType, float>();
     foreach (InsistanceType type in types) {
@@ -119,6 +119,7 @@ public class SheepController : BaseAgent {
     // Setup the sleep action
     Dictionary<InsistanceType, float> sleepEffects = new Dictionary<InsistanceType, float>();
     sleepEffects.Add(InsistanceType.Sleep, -5);
+    sleepEffects.Add(InsistanceType.Joy, 2);
     Action sleep = new Action(sleepEffects, 15, "Sleep");
     this.actions.Add(sleep);
 
