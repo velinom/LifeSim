@@ -12,6 +12,9 @@ public class SheepController : BaseAgent {
   public GameManager GAME_MANAGER;
   private float CELL_SIZE = GameManager.CELL_SIZE;
 
+  // Reference to the particle system that should play while the sheep sleeps
+  private ParticleSystem sleepParticles;
+
   // The max speed / accel (Force) for this sheep
   private const float MAX_SPEED = 2;
   private const float MAX_ACCEL = 10;
@@ -64,6 +67,9 @@ public class SheepController : BaseAgent {
 
   // Setup this sheep by initializing fields
   void Start() {
+    // Get the reference to the sleep particles
+    this.sleepParticles = GetComponent<ParticleSystem>();
+
     // Setup the movement fields
     this.velocity = new Vector2(0, 0);
     this.rotation = 0;
@@ -266,25 +272,29 @@ public class SheepController : BaseAgent {
     return goalSteering;
   }
 
-  // ACTION METHOD: Sleep the sheep for some time
+  // ACTION METHOD: Sleep the sheep for some time, make sure that it is not 
+  // moving.
+  private float sleepStartTime = -1;
   private Vector2 sleep() {
     // Start sleeping, call the co-routine which will stop the sheep
     // from sleeping when its done
-    Debug.Log("sleep called");
-    StartCoroutine(sleepForTime(10));
-    return new Vector2(0, 0);
-  }
+    if (sleepStartTime < 0) {
+      sleepStartTime = Time.time;
+      this.sleepParticles.Play();
+    }
 
-  IEnumerator sleepForTime(float timeSec) {
-    // Wait for the desired number of seconds
-    Debug.Log("sleepForTime callce");
-    this.velocity = new Vector2(0, 0);
-    yield return new WaitForSeconds(timeSec);
+    // If we have been sleeping for 10 seconds
+    if (Time.time > sleepStartTime + 10) {
+      this.goal.apply(this.insistance);
+      this.goal = null;
+      this.arrivingAt = new Vector2(-1, -1);
+      this.sleepStartTime = -1;
+      this.sleepParticles.Stop();
+    }
 
-    // once done, update the goal and insistances
-    this.arrivingAt = new Vector2(-1, -1);
-    this.goal.apply(this.insistance);
-    this.goal = null;
+    // Make sure the sheep isn't moving
+    this.rotation = 0;
+    return new Vector2(-this.velocity.x, -this.velocity.y);
   }
 
   // Calculate rotation, Rotatoin is always in the direction of the 
@@ -328,7 +338,8 @@ public class SheepController : BaseAgent {
 
     // If we hit a wall with a whisker
     if (hit.collider != null) {
-      if (hit.transform.tag == "Water" || hit.transform.tag == "HighElevation") {
+      if ((hit.transform.tag == "Water" && this.goal.name != "Seek Water") || 
+           hit.transform.tag == "HighElevation") {
         // Get a point normal to the wall at the point the colider hit.
         Vector2 normal = hit.normal.normalized;
         Vector2 seekPoint = hit.point + hit.normal * 1.5f;
