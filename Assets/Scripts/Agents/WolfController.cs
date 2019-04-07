@@ -5,25 +5,25 @@ using UnityEngine;
 
 using Random = UnityEngine.Random;
 
-public class SheepController : BaseAgent {
+public class WolfController : BaseAgent {
 
   // Reference to the game manager, contains map and smell info
   // as well as all constants needed from the manager
   public GameManager GAME_MANAGER;
   private float CELL_SIZE = GameManager.CELL_SIZE;
 
-  // Reference to the particle system that should play while the sheep sleeps
+  // Reference to the particle system that should play while the wolf sleeps
   private ParticleSystem sleepParticles;
 
-  // The max speed / accel (Force) for this sheep
-  private const float MAX_SPEED = 2;
+  // The max speed / accel (Force) for this wolf
+  private const float MAX_SPEED = 4;
   private const float MAX_ACCEL = 10;
   private const float MAX_ROTATION = 179;
   private const float MAX_ANGULAR_ACC = 30;
 
   // The radii for the arrive-at behavior
   private const float ARRIVE_RADIUS = 0.5f;
-  private const float SLOW_RADIUS = 3f;
+  private const float SLOW_RADIUS = 3;
   private const float ROTATE_ARRIVE_RAD = 15;
   private const float ROTATE_SLOW_RAD = 45;
 
@@ -34,17 +34,17 @@ public class SheepController : BaseAgent {
   // random value below this one.
   private const float MAX_START_INSISTANCE = 5.0f; 
 
-  // The force that will be applied to this sheep each frame.
+  // The force that will be applied to this wolf each frame.
   // This force can come from several different sources and 
   // accounts for steering behaviors.
   private Vector2 steering;
   private float angularSteering;
 
   // Updated at the start of each frame, the current cell the 
-  // sheep is in.
+  // wolf is in.
   private Vector2 currentCell;
 
-  // The current velocity and rotation of the sheep
+  // The current velocity and rotation of the wolf
   private Vector2 velocity;
   private float rotation;
 
@@ -52,20 +52,20 @@ public class SheepController : BaseAgent {
   // Different insistance types speciffic to sheep
   private enum InsistanceTypes { Sleep, Food, Water, Joy }
 
-  // List of possible actions that the sheep can take
+  // List of possible actions that the wolf can take
   private List<Action> actions;
 
-  // The action that the sheep is currently taking
+  // The action that the wolf is currently taking
   private Action goal;
 
-  // The insistance object for this sheep, the sheep's goal is to minimize 
+  // The insistance object for this wolf, the wolf's goal is to minimize 
   // the values in this object.
   private Insistance insistance;
 
   // If the agent has "seen" their goal, store it here 
   private Vector2 arrivingAt;
 
-  // Setup this sheep by initializing fields
+  // Setup this wolf by initializing fields
   void Start() {
     // Get the reference to the sleep particles
     this.sleepParticles = GetComponent<ParticleSystem>();
@@ -77,21 +77,21 @@ public class SheepController : BaseAgent {
     // Setup the insistance fields, growth rates, etc.
     setupInsistance();
 
-    // Setup the actions that the sheep can take
+    // Setup the actions that the wolf can take
     setupActions();
   }
 
-  // Initialize the fields that the sheep needs for insistance calculations
+  // Initialize the fields that the wolf needs for insistance calculations
   private void setupInsistance() {
     List<InsistanceType> types = new List<InsistanceType> { 
       InsistanceType.Food, InsistanceType.Water, InsistanceType.Sleep, InsistanceType.Joy
     };
 
     Dictionary<InsistanceType, float> growthRates = new Dictionary<InsistanceType, float>();
-    growthRates.Add(InsistanceType.Food, 0.1f);
+    growthRates.Add(InsistanceType.Food, 0.15f);
     growthRates.Add(InsistanceType.Water, 0.1f);
     growthRates.Add(InsistanceType.Sleep, 0.05f);
-    growthRates.Add(InsistanceType.Joy, 0.15f);
+    growthRates.Add(InsistanceType.Joy, 0.2f);
 
     Dictionary<InsistanceType, float> insistances = new Dictionary<InsistanceType, float>();
     foreach (InsistanceType type in types) {
@@ -100,15 +100,16 @@ public class SheepController : BaseAgent {
     this.insistance = new Insistance(types, growthRates, insistances);
   }
 
-  // Setup the fields that allow the sheep to take actions and have goals
+  // Setup the fields that allow the wolf to take actions and have goals
   private void setupActions() {
     this.actions = new List<Action>();
 
-    // Setup the seek food action
-    Dictionary<InsistanceType, float> seekFoodEffects = new Dictionary<InsistanceType, float>();
-    seekFoodEffects.Add(InsistanceType.Food, -5);
-    Action seekFood = new Action(seekFoodEffects, 15, "Seek Food");
-    this.actions.Add(seekFood);
+    // Setup the hunt action
+    Dictionary<InsistanceType, float> huntEffects = new Dictionary<InsistanceType, float>();
+    huntEffects.Add(InsistanceType.Food, -5);
+    huntEffects.Add(InsistanceType.Sleep, 3);
+    Action hunt = new Action(huntEffects, 25, "Hunt");
+    this.actions.Add(hunt);
 
     // Setup the seek water action
     Dictionary<InsistanceType, float> seekWaterEffects = new Dictionary<InsistanceType, float>();
@@ -135,7 +136,7 @@ public class SheepController : BaseAgent {
   }
 	
 	// Update is called once per frame used to calculate the steering 
-  // for the given frame
+  // for the given frame as well as determine the best action if there isn't one
 	void Update () {
     // Update the current cell so that it is known the whole update
     this.currentCell = getCurrentCell(CELL_SIZE);
@@ -143,18 +144,18 @@ public class SheepController : BaseAgent {
     // Determine the Goal or Action that the Sheep will take
     // This goal is set into the field giving the type of action
     if (this.goal == null) {
-      this.goal = determineGoal(this.actions, this.insistance, "sheep");
+      this.goal = determineGoal(this.actions, this.insistance, "wolf");
     }
 
     // Calculate the steering, this includes the high level goal steering as
-    // well as lower level steering to avoid trees / rocks etc.
+    // well as lower level steering to avoid trees etc.
     calculateSteering();
 
-    // Calculate the rotation which is always towards the sheeps current 
+    // Calculate the rotation which is always towards the wolf's current 
     // velocity
     calculateRotation();
 
-    // Apply the steering to actually move the sheep, both linear and 
+    // Apply the steering to actually move the wolf, both linear and 
     // rotational steering are applied here.
     applySteering();
 
@@ -167,8 +168,8 @@ public class SheepController : BaseAgent {
   private void calculateSteering() {
     // Calculate the main steering towrad the sheep's goal
     Vector2 mainGoalSteering = new Vector2(-1, -1);
-    if (this.goal.name == "Seek Food") {
-      mainGoalSteering = seekFood();
+    if (this.goal.name == "Hunt") {
+      mainGoalSteering = hunt();
     } else if (this.goal.name == "Seek Water") {
       mainGoalSteering = seekWater();
     } else if (this.goal.name == "Sleep"){
@@ -176,13 +177,13 @@ public class SheepController : BaseAgent {
     } else if (this.goal.name == "Wander") {
       mainGoalSteering = wander();
     } else {
-      Debug.Log("A sheep has a goal not recognized by the steering method: " + this.goal.name);
+      Debug.Log("A wolf has a goal not recognized by the steering method: " + this.goal.name);
     }
 
     // Now that main steering has been calculated, get lower-level steerings 
     
     // Wall Avoidence:
-    // Cast a ray in front of the sheep to determine if there is a wall there
+    // Cast a ray in front of the wolf to determine if there is a wall there
     Vector2 avoidWallsSteering = calculateWallAvoidence();
 
     // The total steering is a weighted sum of the components
@@ -192,7 +193,7 @@ public class SheepController : BaseAgent {
   // ACTION METHOD: Returns the main steering vector to accomplish this action, 
   // allong with setting this.action to null and updating insistances when the 
   // action is finished
-  private Vector2 seekFood() {
+  private Vector2 hunt() {
     Vector2 goalSteering = new Vector2(-1, -1);
 
     // If we've seen the bush and stored its location, just arrive at the bush
@@ -243,7 +244,7 @@ public class SheepController : BaseAgent {
         new Vector2(currentCell.x * CELL_SIZE, currentCell.y * CELL_SIZE),
         velocity, SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
       
-      // If we have arrived at the water, the sheep should drink
+      // If we have arrived at the water, the wolf should drink
       BoardManager.TileType currentCellType =
         GAME_MANAGER.getBoardArray()[(int)currentCell.x, (int)currentCell.y];
       if (this.arrivingAt.x == this.currentCell.x && this.arrivingAt.y == this.currentCell.y ||
@@ -254,7 +255,7 @@ public class SheepController : BaseAgent {
       }
     } else {
       // If we haven't seen water yet, check if we see one
-      // Check if within 3 blocks of a water tile (represents the sheep seeing the water and going)
+      // Check if within 3 blocks of a water tile (represents the wolf seeing the water and going)
       Vector2 closeWater = getCloseTile(BoardManager.TileType.Water, 3,
                                        currentCell, GAME_MANAGER.getBoardArray());
       if (closeWater.x >= 0 && closeWater.y >= 0) {
@@ -273,12 +274,11 @@ public class SheepController : BaseAgent {
     return goalSteering;
   }
 
-  // ACTION METHOD: Sleep the sheep for some time, make sure that it is not 
+  // ACTION METHOD: Sleep the wolf for some time, make sure that it is not 
   // moving.
   private float sleepStartTime = -1;
   private Vector2 sleep() {
-    // Start sleeping, call the co-routine which will stop the sheep
-    // from sleeping when its done
+    // The first time sleep is called, Start sleeping
     if (sleepStartTime < 0) {
       sleepStartTime = Time.time;
       this.sleepParticles.Play();
@@ -293,13 +293,13 @@ public class SheepController : BaseAgent {
       this.sleepParticles.Stop();
     }
 
-    // Make sure the sheep isn't moving
+    // Make sure the wolf isn't moving
     this.rotation = 0;
     return new Vector2(-this.velocity.x, -this.velocity.y);
   }
 
-  // ACTION METHOD make the sheep wander using a seek behavior toward a point.
-  // The point that the sheep is seeking is based on the sheeps current velocity
+  // ACTION METHOD make the wolf wander using a seek behavior toward a point.
+  // The point that the wolf is seeking is based on the wolf's current direction
   // and is offset by some random ammount
   private float wanderStartTime = -1;
   private float wanderAngle; // The angle of the target on the circle
@@ -361,7 +361,7 @@ public class SheepController : BaseAgent {
     this.angularSteering = angSteering;
   }
 
-  // Return a steering vector to awoid any walls. Need to avoi High elevation and water.
+  // Return a steering vector to awoid any walls. Need to avoid High elevation and water.
   // Done by using short "whisker" ray-casts and moving to a spot normal to the wall
   // if the whiskers hit something.
   private Vector2 calculateWallAvoidence() {

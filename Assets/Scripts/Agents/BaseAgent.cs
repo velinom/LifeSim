@@ -6,6 +6,15 @@ using UnityEngine;
 // differnet agents
 public abstract class BaseAgent : MonoBehaviour {
 
+  // Uses the transfrom of this GameObject to determine what cell the sheep is 
+  // currently in.
+  public Vector2 getCurrentCell(float cellSize) {
+    int xCell = (int)Mathf.Round(this.transform.position.x / cellSize);
+    int yCell = (int)Mathf.Round(this.transform.position.y / cellSize);
+
+    return new Vector2(xCell, yCell);
+  }
+
   // Picks the best goal in the list of actions to minimize the sum of the insistances
   // squared. Accounts for the time that actions take
   public Action determineGoal(List<Action> actions, Insistance insistance, string name) {
