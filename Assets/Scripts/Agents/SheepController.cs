@@ -91,7 +91,7 @@ public class SheepController : BaseAgent {
     growthRates.Add(InsistanceType.Food, 0.1f);
     growthRates.Add(InsistanceType.Water, 0.1f);
     growthRates.Add(InsistanceType.Sleep, 0.1f);
-    growthRates.Add(InsistanceType.Joy, 0.05f);
+    growthRates.Add(InsistanceType.Joy, 0.1f);
 
     Dictionary<InsistanceType, float> insistances = new Dictionary<InsistanceType, float>();
     foreach (InsistanceType type in types) {
@@ -124,10 +124,10 @@ public class SheepController : BaseAgent {
 
     // Setup the wander action
     Dictionary<InsistanceType, float> wanderEffects = new Dictionary<InsistanceType, float>();
-    wanderEffects.Add(InsistanceType.Joy, -7);
+    wanderEffects.Add(InsistanceType.Joy, -5);
     wanderEffects.Add(InsistanceType.Sleep, 2);    
-    Action wander = new Action(wanderEffects, 40, "Wander");
-    //this.actions.Add(wander);
+    Action wander = new Action(wanderEffects, 15, "Wander");
+    this.actions.Add(wander);
 
     // Set arriving at to a dummy vector of (-1, -1)
     this.arrivingAt = new Vector2(-1, -1);
@@ -173,7 +173,7 @@ public class SheepController : BaseAgent {
     } else if (this.goal.name == "Sleep"){
       mainGoalSteering = sleep();
     } else if (this.goal.name == "Wander") {
-      //mainGoalSteering = wander();
+      mainGoalSteering = wander();
     } else {
       Debug.Log("A sheep has a goal not recognized by the steering method: " + this.goal.name);
     }
@@ -295,6 +295,38 @@ public class SheepController : BaseAgent {
     // Make sure the sheep isn't moving
     this.rotation = 0;
     return new Vector2(-this.velocity.x, -this.velocity.y);
+  }
+
+  // ACTION METHOD make the sheep wander using a seek behavior toward a point.
+  // The point that the sheep is seeking is based on the sheeps current velocity
+  // and is offset by some random ammount
+  private float wanderStartTime = -1;
+  private float wanderAngle; // The angle of the target on the circle
+  private Vector2 wander() {
+    // First time wander is called, setup the circle where the seek location
+    // will live
+    if (this.wanderStartTime < 0) {
+      wanderStartTime = Time.time;
+      
+      // Pick an angle between 0 and 360
+      wanderAngle = Random.Range(0, 360);
+    }
+
+    // Update the wnader angle and Calculate the point to seek
+    wanderAngle += Random.Range(-15, 15);
+    Vector2 inFrontOfSheep = this.transform.position + this.transform.right * 2;
+    Vector2 fromCenterToEdge = new Vector2(Mathf.Cos(wanderAngle), Mathf.Sin(wanderAngle));
+    Vector2 pointOnCircle = inFrontOfSheep + fromCenterToEdge;
+
+    if (Time.time > this.wanderStartTime + 10) {
+      this.goal.apply(this.insistance);
+      this.goal = null;
+      this.arrivingAt = new Vector2(-1, -1);
+      this.wanderStartTime = -1;
+    }
+
+    return arriveAt(pointOnCircle, this.transform.position, this.velocity,
+                    SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
   }
 
   // Calculate rotation, Rotatoin is always in the direction of the 
