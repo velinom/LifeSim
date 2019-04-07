@@ -58,6 +58,9 @@ public class SheepController : BaseAgent {
   // the values in this object.
   private Insistance insistance;
 
+  // If the agent has "seen" their goal, store it here 
+  private Vector2 arrivingAt;
+
   // Setup this sheep by initializing fields
   void Start() {
     // Setup the movement fields
@@ -118,6 +121,9 @@ public class SheepController : BaseAgent {
     wanderEffects.Add(InsistanceType.Sleep, 2);    
     Action wander = new Action(wanderEffects, 40, "Wander");
     //this.actions.Add(wander);
+
+    // Set arriving at to a dummy vector of (-1, -1)
+    this.arrivingAt = new Vector2(-1, -1);
   }
 	
 	// Update is called once per frame used to calculate the steering 
@@ -128,7 +134,9 @@ public class SheepController : BaseAgent {
 
     // Determine the Goal or Action that the Sheep will take
     // This goal is set into the field giving the type of action
-    if (this.goal == null) determineGoal();
+    if (this.goal == null) {
+      this.goal = determineGoal(this.actions, this.insistance, "sheep");
+    }
 
     // Calculate the steering, this includes the high level goal steering as
     // well as lower level steering to avoid trees / rocks etc.
@@ -143,38 +151,7 @@ public class SheepController : BaseAgent {
     applySteering();
 
     // Update insistances because some time has passed
-
-  }
-
-  // Determine the goal and action that the sheep should take. The goal is stored in 
-  // the goal field and is used to determine the stearing on this update
-  private void determineGoal() {
-    // Loop over all available actions and determine the one that minimizes the 
-    // sum of insistances sqared. Use the estimated time to complete each action
-    // to discount the other actions when calculating
-    float bestValue = float.MaxValue;
-    Action bestAction = null;
-    foreach (Action action in this.actions) {
-      // Begin by cloning the insistance object so it isn't mutated in the calculations
-      Insistance insistanceCopy = this.insistance.deepCopy();
-
-      // This method also uses the estimated time to determine how much the insistances
-      // will increase while this action is being carried out.
-      action.takeActionAtTime(insistanceCopy, action.estTimeSeconds);
-      float totalInsistance = insistanceCopy.totalInsistance(); // sum of squares
-      if (totalInsistance < bestValue) {
-        bestValue = totalInsistance;
-        bestAction = action;
-      }
-    }
-
-    Debug.Log("A sheep with: hunger:" + this.insistance.insistances[InsistanceType.Food] +
-              ", thirst:" + this.insistance.insistances[InsistanceType.Water] +
-              ", sleep:" + this.insistance.insistances[InsistanceType.Sleep] +
-              ", joy:" + this.insistance.insistances[InsistanceType.Joy] +
-              ", Decided to " + bestAction.name);
-
-    this.goal = bestAction;
+    increaseInsistances(this.insistance);
   }
 
   // Determine the force that should be applied to move the sheep on this 
@@ -210,25 +187,36 @@ public class SheepController : BaseAgent {
   private Vector2 seekFood() {
     Vector2 goalSteering = new Vector2(-1, -1);
 
-    // Check if within 3 blocks of a bush (represents the sheep seeing the bush and going)
-    Vector2 closeBush = getCloseFood(BoardManager.Food.Bush, 3, 
-                                     currentCell, GAME_MANAGER.getFoodArray());
-    if (closeBush.x >= 0 && closeBush.y >= 0) {
+    // If we've seen the bush and stored its location, just arrive at the bush
+    // (If we don't have a target to arrive at the vector is (-1, -1))
+    if (this.arrivingAt.x >= 0 && this.arrivingAt.y >= 0) {
       goalSteering = arriveAt(
-        new Vector2(closeBush.x * CELL_SIZE, closeBush.y * CELL_SIZE),
+        new Vector2(this.arrivingAt.x * CELL_SIZE, this.arrivingAt.y * CELL_SIZE),
         new Vector2(currentCell.x * CELL_SIZE, currentCell.y * CELL_SIZE),
         velocity, SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
-
-      // If the sheep has reached the bush, update insistances and set goal to null
-      if (closeBush.x == this.currentCell.x && closeBush.y == this.currentCell.y) {
+      
+      // If we have arrived at the bush, the sheep should eat
+      if (this.arrivingAt.x == this.currentCell.x && this.arrivingAt.y == this.currentCell.y) {
         this.goal.apply(this.insistance);
         this.goal = null;
+        this.arrivingAt = new Vector2(-1, -1);
       }
-    }
-    // Otherwise, follow the smell until within 3 blocks
-    else {
-      goalSteering = this.getDirectionOfSmell(SmellType.GroundFood,
-        currentCell, GAME_MANAGER.getSmellArray()) * MAX_ACCEL;
+    } else {
+      // If we haven't seen a bush yet, check if we see one
+      // Check if within 3 blocks of a bush (represents the sheep seeing the bush and going)
+      Vector2 closeBush = getCloseFood(BoardManager.Food.Bush, 3, 
+                                       currentCell, GAME_MANAGER.getFoodArray());
+      if (closeBush.x >= 0 && closeBush.y >= 0) {
+        this.arrivingAt = closeBush;
+        goalSteering = arriveAt(
+          new Vector2(closeBush.x * CELL_SIZE, closeBush.y * CELL_SIZE),
+          new Vector2(currentCell.x * CELL_SIZE, currentCell.y * CELL_SIZE),
+          velocity, SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
+      } else {
+        // If we still can't see a bush, just follow the smell
+        goalSteering = this.getDirectionOfSmell(SmellType.GroundFood,
+          currentCell, GAME_MANAGER.getSmellArray()) * MAX_ACCEL;
+      }
     }
 
     return goalSteering;
@@ -239,26 +227,39 @@ public class SheepController : BaseAgent {
   // action is finished
   private Vector2 seekWater() {
     Vector2 goalSteering = new Vector2(-1, -1);
-
-    // Check if within 3 blocks of a water tile (represents the sheep seeing the water and going)
-    Vector2 closeWater = getCloseTile(BoardManager.TileType.Water, 3, 
-                                     currentCell, GAME_MANAGER.getBoardArray());
-    if (closeWater.x >= 0 && closeWater.y >= 0) {
+    // If we've seen the water and stored its location, just arrive at the water tile
+    // (If we don't have a target to arrive at the vector is (-1, -1))
+    if (this.arrivingAt.x >= 0 && this.arrivingAt.y >= 0) {
       goalSteering = arriveAt(
-        new Vector2(closeWater.x * CELL_SIZE, closeWater.y * CELL_SIZE),
+        new Vector2(this.arrivingAt.x * CELL_SIZE, this.arrivingAt.y * CELL_SIZE),
         new Vector2(currentCell.x * CELL_SIZE, currentCell.y * CELL_SIZE),
         velocity, SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
-
-      // If the sheep has reached the water, update insistances and set goal to null
-      if (closeWater.x == this.currentCell.x && closeWater.y == this.currentCell.y) {
+      
+      // If we have arrived at the water, the sheep should drink
+      BoardManager.TileType currentCellType =
+        GAME_MANAGER.getBoardArray()[(int)currentCell.x, (int)currentCell.y];
+      if (this.arrivingAt.x == this.currentCell.x && this.arrivingAt.y == this.currentCell.y ||
+          currentCellType == BoardManager.TileType.Water) {
         this.goal.apply(this.insistance);
         this.goal = null;
+        this.arrivingAt = new Vector2(-1, -1);
       }
-    }
-    // Otherwise, follow the smell until within 3 blocks
-    else {
-      goalSteering = this.getDirectionOfSmell(SmellType.Water,
-        currentCell, GAME_MANAGER.getSmellArray()) * MAX_ACCEL;
+    } else {
+      // If we haven't seen water yet, check if we see one
+      // Check if within 3 blocks of a water tile (represents the sheep seeing the water and going)
+      Vector2 closeWater = getCloseTile(BoardManager.TileType.Water, 3,
+                                       currentCell, GAME_MANAGER.getBoardArray());
+      if (closeWater.x >= 0 && closeWater.y >= 0) {
+        this.arrivingAt = closeWater;
+        goalSteering = arriveAt(
+          new Vector2(closeWater.x * CELL_SIZE, closeWater.y * CELL_SIZE),
+          new Vector2(currentCell.x * CELL_SIZE, currentCell.y * CELL_SIZE),
+          velocity, SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
+      } else {
+        // If we still can't see a bush, just follow the smell
+        goalSteering = this.getDirectionOfSmell(SmellType.Water,
+          currentCell, GAME_MANAGER.getSmellArray()) * MAX_ACCEL;
+      }
     }
 
     return goalSteering;

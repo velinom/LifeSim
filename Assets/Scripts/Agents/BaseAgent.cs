@@ -1,7 +1,49 @@
 using Models;
+using System.Collections.Generic;
 using UnityEngine;
 
+// Class with a bunch of utility methods that are the same / used acrossed several
+// differnet agents
 public abstract class BaseAgent : MonoBehaviour {
+
+  // Picks the best goal in the list of actions to minimize the sum of the insistances
+  // squared. Accounts for the time that actions take
+  public Action determineGoal(List<Action> actions, Insistance insistance, string name) {
+    // Loop over all available actions and determine the one that minimizes the 
+    // sum of insistances sqared. Use the estimated time to complete each action
+    // to discount the other actions when calculating
+    float bestValue = float.MaxValue;
+    Action bestAction = null;
+    foreach (Action action in actions) {
+      // Begin by cloning the insistance object so it isn't mutated in the calculations
+      Insistance insistanceCopy = insistance.deepCopy();
+
+      // This method also uses the estimated time to determine how much the insistances
+      // will increase while this action is being carried out.
+      action.takeActionAtTime(insistanceCopy, action.estTimeSeconds);
+      float totalInsistance = insistanceCopy.totalInsistance(); // sum of squares
+      if (totalInsistance < bestValue) {
+        bestValue = totalInsistance;
+        bestAction = action;
+      }
+    }
+
+    Debug.Log("A sheep with: hunger:" + insistance.insistances[InsistanceType.Food] +
+              ", thirst:" + insistance.insistances[InsistanceType.Water] +
+              ", sleep:" + insistance.insistances[InsistanceType.Sleep] +
+              ", joy:" + insistance.insistances[InsistanceType.Joy] +
+              ", Decided to " + bestAction.name);
+
+    return bestAction;
+  }
+
+  // Mutates the given insistance by increasing all insistances based on their
+  // growth rates
+  public void increaseInsistances(Insistance insistance) {
+    foreach (InsistanceType type in insistance.insistanceTypes) {
+      insistance.insistances[type] += insistance.growthRates[type] * Time.deltaTime;
+    }
+  }
 
   // Assess the smell of the given type in the 3x3 area surounding the agent,
   // Determine the direction that the smell is coming from and return a 2D 

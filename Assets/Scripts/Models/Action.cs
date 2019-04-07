@@ -53,6 +53,10 @@ namespace Models {
       foreach (KeyValuePair<InsistanceType, float> effect in effects) {
         if (insistance.insistanceTypes.Contains(effect.Key)) {
           insistance.insistances[effect.Key] += effect.Value;
+          if (insistance.insistances[effect.Key] < 0) {
+            insistance.insistances[effect.Key] = 0;
+          }
+
         } else {
           Debug.Log("Attempted to apply action to insistance object that doesn't contain " +
                     "one of the actions effects.");
