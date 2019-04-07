@@ -1,4 +1,5 @@
 using Models;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -83,7 +84,7 @@ public class SheepController : BaseAgent {
     Dictionary<InsistanceType, float> growthRates = new Dictionary<InsistanceType, float>();
     growthRates.Add(InsistanceType.Food, 0.1f);
     growthRates.Add(InsistanceType.Water, 0.1f);
-    growthRates.Add(InsistanceType.Sleep, 0.02f);
+    growthRates.Add(InsistanceType.Sleep, 0.1f);
     growthRates.Add(InsistanceType.Joy, 0.05f);
 
     Dictionary<InsistanceType, float> insistances = new Dictionary<InsistanceType, float>();
@@ -100,7 +101,7 @@ public class SheepController : BaseAgent {
     // Setup the seek food action
     Dictionary<InsistanceType, float> seekFoodEffects = new Dictionary<InsistanceType, float>();
     seekFoodEffects.Add(InsistanceType.Food, -5);
-    Action seekFood = new Action(seekFoodEffects, 10, "Seek Food");
+    Action seekFood = new Action(seekFoodEffects, 15, "Seek Food");
     this.actions.Add(seekFood);
 
     // Setup the seek water action
@@ -111,9 +112,9 @@ public class SheepController : BaseAgent {
 
     // Setup the sleep action
     Dictionary<InsistanceType, float> sleepEffects = new Dictionary<InsistanceType, float>();
-    sleepEffects.Add(InsistanceType.Sleep, -15);
-    Action sleep = new Action(sleepEffects, 60, "Sleep");
-    //this.actions.Add(sleep);
+    sleepEffects.Add(InsistanceType.Sleep, -5);
+    Action sleep = new Action(sleepEffects, 15, "Sleep");
+    this.actions.Add(sleep);
 
     // Setup the wander action
     Dictionary<InsistanceType, float> wanderEffects = new Dictionary<InsistanceType, float>();
@@ -164,7 +165,7 @@ public class SheepController : BaseAgent {
     } else if (this.goal.name == "Seek Water") {
       mainGoalSteering = seekWater();
     } else if (this.goal.name == "Sleep"){
-      //mainGoalSteering = sleep();
+      mainGoalSteering = sleep();
     } else if (this.goal.name == "Wander") {
       //mainGoalSteering = wander();
     } else {
@@ -263,6 +264,27 @@ public class SheepController : BaseAgent {
     }
 
     return goalSteering;
+  }
+
+  // ACTION METHOD: Sleep the sheep for some time
+  private Vector2 sleep() {
+    // Start sleeping, call the co-routine which will stop the sheep
+    // from sleeping when its done
+    Debug.Log("sleep called");
+    StartCoroutine(sleepForTime(10));
+    return new Vector2(0, 0);
+  }
+
+  IEnumerator sleepForTime(float timeSec) {
+    // Wait for the desired number of seconds
+    Debug.Log("sleepForTime callce");
+    this.velocity = new Vector2(0, 0);
+    yield return new WaitForSeconds(timeSec);
+
+    // once done, update the goal and insistances
+    this.arrivingAt = new Vector2(-1, -1);
+    this.goal.apply(this.insistance);
+    this.goal = null;
   }
 
   // Calculate rotation, Rotatoin is always in the direction of the 

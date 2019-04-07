@@ -53,8 +53,10 @@ namespace Models {
       foreach (KeyValuePair<InsistanceType, float> effect in effects) {
         if (insistance.insistanceTypes.Contains(effect.Key)) {
           insistance.insistances[effect.Key] += effect.Value;
-          if (insistance.insistances[effect.Key] < 0) {
-            insistance.insistances[effect.Key] = 0;
+
+          // Lowest possible insistance is 1, want squrared insistances to grow.
+          if (insistance.insistances[effect.Key] < 1) {
+            insistance.insistances[effect.Key] = 1;
           }
 
         } else {
