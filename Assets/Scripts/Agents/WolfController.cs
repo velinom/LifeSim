@@ -39,27 +39,12 @@ public class WolfController : BaseAgent {
   private Vector2 steering;
   private float angularSteering;
 
-  // Updated at the start of each frame, the current cell the 
-  // wolf is in.
-  private Vector2 currentCell;
-
-  // The current velocity and rotation of the wolf
-  private Vector2 velocity;
-  private float rotation;
-
   // INSISTANCES
   // Different insistance types speciffic to sheep
   private enum InsistanceTypes { Sleep, Food, Water, Joy }
 
   // List of possible actions that the wolf can take
   private List<Action> actions;
-
-  // The action that the wolf is currently taking
-  private Action goal;
-
-  // The insistance object for this wolf, the wolf's goal is to minimize 
-  // the values in this object.
-  private Insistance insistance;
 
   // If the agent has "seen" their goal, store it here 
   private Vector2 arrivingAt;
@@ -138,7 +123,7 @@ public class WolfController : BaseAgent {
   // for the given frame as well as determine the best action if there isn't one
 	void Update () {
     // Update the current cell so that it is known the whole update
-    this.currentCell = getCurrentCell(CELL_SIZE);
+    this.currentCell = getCurrentCell();
 
     // Determine the Goal or Action that the Sheep will take
     // This goal is set into the field giving the type of action

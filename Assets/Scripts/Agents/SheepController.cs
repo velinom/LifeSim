@@ -10,41 +10,15 @@ public class SheepController : BaseAgent {
   // Reference to the game manager fields for convenience
   private float CELL_SIZE = GameManager.CELL_SIZE;
 
-  // Reference to the particle system that should play while the sheep sleeps
+  // Reference to the particle system that should play while the agent sleeps
   private ParticleSystem sleepParticles;
-
-  // The max speed / accel (Force) for this sheep
-  private const float MAX_SPEED = 2;
-  private const float MAX_ACCEL = 10;
-  private const float MAX_ROTATION = 179;
-  private const float MAX_ANGULAR_ACC = 30;
-
-  // The radii for the arrive-at behavior
-  private const float ARRIVE_RADIUS = 0.5f;
-  private const float SLOW_RADIUS = 3f;
-  private const float ROTATE_ARRIVE_RAD = 15;
-  private const float ROTATE_SLOW_RAD = 45;
 
   // Parameters for wall avoidence
   private const float RAY_LENGTH = 2;
 
   // The max insistance any type can start at, insistances start at a
   // random value below this one.
-  private const float MAX_START_INSISTANCE = 5.0f; 
-
-  // The force that will be applied to this sheep each frame.
-  // This force can come from several different sources and 
-  // accounts for steering behaviors.
-  private Vector2 steering;
-  private float angularSteering;
-
-  // Updated at the start of each frame, the current cell the 
-  // sheep is in.
-  private Vector2 currentCell;
-
-  // The current velocity and rotation of the sheep
-  private Vector2 velocity;
-  private float rotation;
+  private const float MAX_START_INSISTANCE = 5.0f;
 
   // INSISTANCES
   // Different insistance types speciffic to sheep
@@ -53,18 +27,21 @@ public class SheepController : BaseAgent {
   // List of possible actions that the sheep can take
   private List<Action> actions;
 
-  // The action that the sheep is currently taking
-  private Action goal;
-
-  // The insistance object for this sheep, the sheep's goal is to minimize 
-  // the values in this object.
-  private Insistance insistance;
-
   // If the agent has "seen" their goal, store it here 
   private Vector2 arrivingAt;
 
   // Setup this sheep by initializing fields
   void Start() {
+    // Set the movement consts for the BaseAgent class
+    MAX_SPEED = 2;
+    MAX_ACCEL = 10;
+    MAX_ROTATION = 179;
+    MAX_ANGULAR_ACC = 30;
+    ARRIVE_RADIUS = 0.5f;
+    SLOW_RADIUS = 3;
+    ROTATE_ARRIVE_RAD = 15;
+    ROTATE_SLOW_RAD = 45;
+
     // Get the reference to the sleep particles
     this.sleepParticles = GetComponent<ParticleSystem>();
 
@@ -136,7 +113,7 @@ public class SheepController : BaseAgent {
   // for the given frame
 	void Update () {
     // Update the current cell so that it is known the whole update
-    this.currentCell = getCurrentCell(CELL_SIZE);
+    this.currentCell = getCurrentCell();
 
     // Determine the Goal or Action that the Sheep will take
     // This goal is set into the field giving the type of action
@@ -146,15 +123,15 @@ public class SheepController : BaseAgent {
 
     // Calculate the steering, this includes the high level goal steering as
     // well as lower level steering to avoid trees / rocks etc.
-    calculateSteering();
+    Vector2 linearSteering = calculateSteering();
 
     // Calculate the rotation which is always towards the sheeps current 
     // velocity
-    calculateRotation();
+    float angularSteering = calculateRotation();
 
     // Apply the steering to actually move the sheep, both linear and 
     // rotational steering are applied here.
-    applySteering();
+    applySteering(linearSteering, angularSteering);
 
     // Update insistances because some time has passed
     increaseInsistances(this.insistance);
@@ -162,15 +139,15 @@ public class SheepController : BaseAgent {
 
   // Determine the force that should be applied to move the sheep on this 
   // frame
-  private void calculateSteering() {
+  private Vector2 calculateSteering() {
     // Calculate the main steering towrad the sheep's goal
     Vector2 mainGoalSteering = new Vector2(-1, -1);
     if (this.goal.name == "Seek Food") {
-      mainGoalSteering = seekFood();
+      mainGoalSteering = seekFood(BoardManager.Food.Bush, SmellType.GroundFood);
     } else if (this.goal.name == "Seek Water") {
-      mainGoalSteering = seekWater();
+      mainGoalSteering = seekTile(BoardManager.TileType.Water, SmellType.Water);
     } else if (this.goal.name == "Sleep"){
-      mainGoalSteering = sleep();
+      mainGoalSteering = sleep(this.sleepParticles, 10);
     } else if (this.goal.name == "Wander") {
       mainGoalSteering = wander();
     } else {
@@ -184,153 +161,12 @@ public class SheepController : BaseAgent {
     Vector2 avoidWallsSteering = calculateWallAvoidence();
 
     // The total steering is a weighted sum of the components
-    this.steering = mainGoalSteering * 0.3f + avoidWallsSteering * 0.7f;
-  }
-
-  // ACTION METHOD: Returns the main steering vector to accomplish this action, 
-  // allong with setting this.action to null and updating insistances when the 
-  // action is finished
-  private Vector2 seekFood() {
-    Vector2 goalSteering = new Vector2(-1, -1);
-
-    // If we've seen the bush and stored its location, just arrive at the bush
-    // (If we don't have a target to arrive at the vector is (-1, -1))
-    if (this.arrivingAt.x >= 0 && this.arrivingAt.y >= 0) {
-      goalSteering = arriveAt(
-        new Vector2(this.arrivingAt.x * CELL_SIZE, this.arrivingAt.y * CELL_SIZE),
-        new Vector2(currentCell.x * CELL_SIZE, currentCell.y * CELL_SIZE),
-        velocity, SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
-      
-      // If we have arrived at the bush, the sheep should eat
-      if (this.arrivingAt.x == this.currentCell.x && this.arrivingAt.y == this.currentCell.y) {
-        this.goal.apply(this.insistance);
-        this.goal = null;
-        this.arrivingAt = new Vector2(-1, -1);
-      }
-    } else {
-      // If we haven't seen a bush yet, check if we see one
-      // Check if within 3 blocks of a bush (represents the sheep seeing the bush and going)
-      Vector2 closeBush = getCloseFood(BoardManager.Food.Bush, 3, currentCell,
-                                       GameManager.instance.getFoodArray());
-      if (closeBush.x >= 0 && closeBush.y >= 0) {
-        this.arrivingAt = closeBush;
-        goalSteering = arriveAt(
-          new Vector2(closeBush.x * CELL_SIZE, closeBush.y * CELL_SIZE),
-          new Vector2(currentCell.x * CELL_SIZE, currentCell.y * CELL_SIZE),
-          velocity, SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
-      } else {
-        // If we still can't see a bush, just follow the smell
-        goalSteering = this.getDirectionOfSmell(SmellType.GroundFood,
-          currentCell, GameManager.instance.getSmellArray()) * MAX_ACCEL;
-      }
-    }
-
-    return goalSteering;
-  }
-
-  // ACTION METHOD: Returns the main steering vector to accomplish this action, 
-  // allong with setting this.action to null and updating insistances when the 
-  // action is finished
-  private Vector2 seekWater() {
-    Vector2 goalSteering = new Vector2(-1, -1);
-    // If we've seen the water and stored its location, just arrive at the water tile
-    // (If we don't have a target to arrive at the vector is (-1, -1))
-    if (this.arrivingAt.x >= 0 && this.arrivingAt.y >= 0) {
-      goalSteering = arriveAt(
-        new Vector2(this.arrivingAt.x * CELL_SIZE, this.arrivingAt.y * CELL_SIZE),
-        new Vector2(currentCell.x * CELL_SIZE, currentCell.y * CELL_SIZE),
-        velocity, SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
-      
-      // If we have arrived at the water, the sheep should drink
-      BoardManager.TileType currentCellType =
-        GameManager.instance.getBoardArray()[(int)currentCell.x, (int)currentCell.y];
-      if (this.arrivingAt.x == this.currentCell.x && this.arrivingAt.y == this.currentCell.y ||
-          currentCellType == BoardManager.TileType.Water) {
-        this.goal.apply(this.insistance);
-        this.goal = null;
-        this.arrivingAt = new Vector2(-1, -1);
-      }
-    } else {
-      // If we haven't seen water yet, check if we see one
-      // Check if within 3 blocks of a water tile (represents the sheep seeing the water and going)
-      Vector2 closeWater = getCloseTile(BoardManager.TileType.Water, 3, currentCell,
-                                        GameManager.instance.getBoardArray());
-      if (closeWater.x >= 0 && closeWater.y >= 0) {
-        this.arrivingAt = closeWater;
-        goalSteering = arriveAt(
-          new Vector2(closeWater.x * CELL_SIZE, closeWater.y * CELL_SIZE),
-          new Vector2(currentCell.x * CELL_SIZE, currentCell.y * CELL_SIZE),
-          velocity, SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
-      } else {
-        // If we still can't see a bush, just follow the smell
-        goalSteering = this.getDirectionOfSmell(SmellType.Water,
-          currentCell, GameManager.instance.getSmellArray()) * MAX_ACCEL;
-      }
-    }
-
-    return goalSteering;
-  }
-
-  // ACTION METHOD: Sleep the sheep for some time, make sure that it is not 
-  // moving.
-  private float sleepStartTime = -1;
-  private Vector2 sleep() {
-    // Start sleeping, call the co-routine which will stop the sheep
-    // from sleeping when its done
-    if (sleepStartTime < 0) {
-      sleepStartTime = Time.time;
-      this.sleepParticles.Play();
-    }
-
-    // If we have been sleeping for 10 seconds
-    if (Time.time > sleepStartTime + 10) {
-      this.goal.apply(this.insistance);
-      this.goal = null;
-      this.arrivingAt = new Vector2(-1, -1);
-      this.sleepStartTime = -1;
-      this.sleepParticles.Stop();
-    }
-
-    // Make sure the sheep isn't moving
-    this.rotation = 0;
-    return new Vector2(-this.velocity.x, -this.velocity.y);
-  }
-
-  // ACTION METHOD make the sheep wander using a seek behavior toward a point.
-  // The point that the sheep is seeking is based on the sheeps current velocity
-  // and is offset by some random ammount
-  private float wanderStartTime = -1;
-  private float wanderAngle; // The angle of the target on the circle
-  private Vector2 wander() {
-    // First time wander is called, setup the circle where the seek location
-    // will live
-    if (this.wanderStartTime < 0) {
-      wanderStartTime = Time.time;
-      
-      // Pick an angle between 0 and 360
-      wanderAngle = Random.Range(0, 360);
-    }
-
-    // Update the wnader angle and Calculate the point to seek
-    wanderAngle += Random.Range(-15, 15);
-    Vector2 inFrontOfSheep = this.transform.position + this.transform.right * 2;
-    Vector2 fromCenterToEdge = new Vector2(Mathf.Cos(wanderAngle), Mathf.Sin(wanderAngle));
-    Vector2 pointOnCircle = inFrontOfSheep + fromCenterToEdge;
-
-    if (Time.time > this.wanderStartTime + 10) {
-      this.goal.apply(this.insistance);
-      this.goal = null;
-      this.arrivingAt = new Vector2(-1, -1);
-      this.wanderStartTime = -1;
-    }
-
-    return arriveAt(pointOnCircle, this.transform.position, this.velocity,
-                    SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
+    return mainGoalSteering * 0.3f + avoidWallsSteering * 0.7f;
   }
 
   // Calculate rotation, Rotatoin is always in the direction of the 
   // current velocity.
-  private void calculateRotation() {
+  private float calculateRotation() {
     float targetOrientation = Mathf.Rad2Deg * Mathf.Atan2(velocity.y, velocity.x);
     
     // The target rotation depends on the radii for "arive" and "slow"
@@ -356,7 +192,7 @@ public class SheepController : BaseAgent {
     float angSteering = targetRotation - this.rotation;
     if (angSteering > 180) angSteering -= 360;
     if (angSteering < -180) angSteering += 360;
-    this.angularSteering = angSteering;
+    return angSteering;
   }
 
   // Return a steering vector to awoid any walls. Need to avoi High elevation and water.
@@ -385,19 +221,19 @@ public class SheepController : BaseAgent {
 
   // Preform an update on the sheep based on the linear acceleration and rotation.
   // Then move the sheep based on the new velocity and orientatoin.
-  private void applySteering() {
+  private void applySteering(Vector2 linSteering, float angSteering) {
     // Begin by clamping the linear / angular acceleration
-    if (steering.magnitude > MAX_ACCEL) {
-      this.steering.Normalize();
-      this.steering *= MAX_ACCEL;
+    if (linSteering.magnitude > MAX_ACCEL) {
+      linSteering.Normalize();
+      linSteering *= MAX_ACCEL;
     }
-    if (Mathf.Abs(angularSteering) > MAX_ANGULAR_ACC) {
-      angularSteering = angularSteering > 0 ? MAX_ANGULAR_ACC : -MAX_ANGULAR_ACC;
+    if (Mathf.Abs(angSteering) > MAX_ANGULAR_ACC) {
+      angSteering = angSteering > 0 ? MAX_ANGULAR_ACC : -MAX_ANGULAR_ACC;
     }
 
     // Update the velocities using the accelerations
-    this.velocity += this.steering;
-    this.rotation += this.angularSteering;
+    this.velocity += linSteering;
+    this.rotation += angSteering;
 
     // Clip the velocity/rotation if they are too high
     if (this.velocity.magnitude > MAX_SPEED) {

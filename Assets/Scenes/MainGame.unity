@@ -123,11 +123,11 @@ Prefab:
     m_Modifications:
     - target: {fileID: 4097172865828006, guid: d5812f94b481a7a4ab3966a594999e79, type: 2}
       propertyPath: m_LocalPosition.x
-      value: 55.87
+      value: 19.9
       objectReference: {fileID: 0}
     - target: {fileID: 4097172865828006, guid: d5812f94b481a7a4ab3966a594999e79, type: 2}
       propertyPath: m_LocalPosition.y
-      value: 36.23
+      value: 16.8
       objectReference: {fileID: 0}
     - target: {fileID: 4097172865828006, guid: d5812f94b481a7a4ab3966a594999e79, type: 2}
       propertyPath: m_LocalPosition.z
@@ -158,6 +158,11 @@ Prefab:
       propertyPath: GAME_MANAGER
       value: 
       objectReference: {fileID: 341049244}
+    - target: {fileID: 198920207251419900, guid: d5812f94b481a7a4ab3966a594999e79,
+        type: 2}
+      propertyPath: randomSeed
+      value: -563146318
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: d5812f94b481a7a4ab3966a594999e79, type: 2}
   m_IsPrefabParent: 0
@@ -170,11 +175,11 @@ Prefab:
     m_Modifications:
     - target: {fileID: 4850597685130282, guid: a8ef8a9a1a4c1d7418d17a5e1b48e02a, type: 2}
       propertyPath: m_LocalPosition.x
-      value: 54.661
+      value: 20.2
       objectReference: {fileID: 0}
     - target: {fileID: 4850597685130282, guid: a8ef8a9a1a4c1d7418d17a5e1b48e02a, type: 2}
       propertyPath: m_LocalPosition.y
-      value: 36.327
+      value: 19
       objectReference: {fileID: 0}
     - target: {fileID: 4850597685130282, guid: a8ef8a9a1a4c1d7418d17a5e1b48e02a, type: 2}
       propertyPath: m_LocalPosition.z
@@ -696,7 +701,7 @@ GameObject:
   - component: {fileID: 1763816224}
   - component: {fileID: 1763816223}
   m_Layer: 5
-  m_Name: Canvas
+  m_Name: DebugText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -774,7 +779,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 40.2, y: 60.2}
+  m_AnchoredPosition: {x: 40.09, y: 60.05}
   m_SizeDelta: {x: 80.5, y: 120.5}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1806966465
