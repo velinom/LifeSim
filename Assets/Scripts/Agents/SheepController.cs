@@ -7,9 +7,6 @@ using Random = UnityEngine.Random;
 
 public class SheepController : BaseAgent {
 
-  // Reference to the game manager fields for convenience
-  private float CELL_SIZE = GameManager.CELL_SIZE;
-
   // Reference to the particle system that should play while the agent sleeps
   private ParticleSystem sleepParticles;
 
@@ -54,6 +51,9 @@ public class SheepController : BaseAgent {
 
     // Setup the actions that the sheep can take
     setupActions();
+
+    // Set arriving at to a dummy vector of (-1, -1)
+    this.arrivingAt = new Vector2(-1, -1);
   }
 
   // Initialize the fields that the sheep needs for insistance calculations
@@ -104,9 +104,6 @@ public class SheepController : BaseAgent {
     wanderEffects.Add(InsistanceType.Sleep, 2);    
     Action wander = new Action(wanderEffects, 15, "Wander");
     this.actions.Add(wander);
-
-    // Set arriving at to a dummy vector of (-1, -1)
-    this.arrivingAt = new Vector2(-1, -1);
   }
 	
 	// Update is called once per frame used to calculate the steering 
@@ -249,5 +246,10 @@ public class SheepController : BaseAgent {
     // Now apply the steering to the sheep
     this.transform.Translate(this.velocity * Time.deltaTime, Space.World);
     this.transform.Rotate(0, 0, this.rotation * Time.deltaTime);
+  }
+
+  // Used for displaying the info about this sheep when it is clicked
+  void OnMouseDown() {
+    Debug.Log("you clicked a sheep");
   }
 }

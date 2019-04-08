@@ -7,7 +7,7 @@ using UnityEngine;
 public abstract class BaseAgent : MonoBehaviour {
 
   // Consts from the game manager
-  private float CELL_SIZE = GameManager.CELL_SIZE;
+  public float CELL_SIZE = GameManager.CELL_SIZE;
 
   // MOVEMENT CONSTANTS,
   // THESE NEED TO BE SET IN IMPLEMENTING CLASSES

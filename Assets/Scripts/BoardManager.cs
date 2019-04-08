@@ -427,7 +427,6 @@ public class BoardManager : MonoBehaviour {
 	// To be called by the game manager, randomly makes the board
 	// and instantiates the tiles in their place
 	public void createScene(bool useSeed, int seed) {
-		Debug.Log("Creating board");
 		if (useSeed) Random.InitState(seed);
 
 		// Setup the water and land tiles, then render them

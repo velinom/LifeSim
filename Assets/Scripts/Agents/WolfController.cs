@@ -7,37 +7,15 @@ using Random = UnityEngine.Random;
 
 public class WolfController : BaseAgent {
 
-  // Reference to the game manager, contains map and smell info
-  // as well as all constants needed from the manager
-  private float CELL_SIZE = GameManager.CELL_SIZE;
-
   // Reference to the particle system that should play while the wolf sleeps
   private ParticleSystem sleepParticles;
-
-  // The max speed / accel (Force) for this wolf
-  private const float MAX_SPEED = 4;
-  private const float MAX_ACCEL = 10;
-  private const float MAX_ROTATION = 179;
-  private const float MAX_ANGULAR_ACC = 30;
-
-  // The radii for the arrive-at behavior
-  private const float ARRIVE_RADIUS = 0.5f;
-  private const float SLOW_RADIUS = 3;
-  private const float ROTATE_ARRIVE_RAD = 15;
-  private const float ROTATE_SLOW_RAD = 45;
 
   // Parameters for wall avoidence
   private const float RAY_LENGTH = 2;
 
   // The max insistance any type can start at, insistances start at a
   // random value below this one.
-  private const float MAX_START_INSISTANCE = 5.0f; 
-
-  // The force that will be applied to this wolf each frame.
-  // This force can come from several different sources and 
-  // accounts for steering behaviors.
-  private Vector2 steering;
-  private float angularSteering;
+  private const float MAX_START_INSISTANCE = 5.0f;
 
   // INSISTANCES
   // Different insistance types speciffic to sheep
@@ -51,6 +29,18 @@ public class WolfController : BaseAgent {
 
   // Setup this wolf by initializing fields
   void Start() {
+    // Setup the movement consts for the wolf
+    // The max speed / accel (Force) for this wolf
+    MAX_SPEED = 4;
+    MAX_ACCEL = 10;
+    MAX_ROTATION = 179;
+    MAX_ANGULAR_ACC = 30;
+    // The radii for the arrive-at behavior
+    ARRIVE_RADIUS = 0.5f;
+    SLOW_RADIUS = 3;
+    ROTATE_ARRIVE_RAD = 15;
+    ROTATE_SLOW_RAD = 45;
+
     // Get the reference to the sleep particles
     this.sleepParticles = GetComponent<ParticleSystem>();
 
@@ -63,6 +53,9 @@ public class WolfController : BaseAgent {
 
     // Setup the actions that the wolf can take
     setupActions();
+
+    // Set arriving at to a dummy vector of (-1, -1)
+    this.arrivingAt = new Vector2(-1, -1);
   }
 
   // Initialize the fields that the wolf needs for insistance calculations
@@ -114,9 +107,6 @@ public class WolfController : BaseAgent {
     wanderEffects.Add(InsistanceType.Sleep, 2);    
     Action wander = new Action(wanderEffects, 15, "Wander");
     this.actions.Add(wander);
-
-    // Set arriving at to a dummy vector of (-1, -1)
-    this.arrivingAt = new Vector2(-1, -1);
   }
 	
 	// Update is called once per frame used to calculate the steering 
@@ -133,15 +123,15 @@ public class WolfController : BaseAgent {
 
     // Calculate the steering, this includes the high level goal steering as
     // well as lower level steering to avoid trees etc.
-    calculateSteering();
+    Vector2 linearSteering = calculateSteering();
 
     // Calculate the rotation which is always towards the wolf's current 
     // velocity
-    calculateRotation();
+    float angularSteering = calculateRotation();
 
     // Apply the steering to actually move the wolf, both linear and 
     // rotational steering are applied here.
-    applySteering();
+    applySteering(linearSteering, angularSteering);
 
     // Update insistances because some time has passed
     increaseInsistances(this.insistance);
@@ -149,15 +139,15 @@ public class WolfController : BaseAgent {
 
   // Determine the force that should be applied to move the sheep on this 
   // frame
-  private void calculateSteering() {
+  private Vector2 calculateSteering() {
     // Calculate the main steering towrad the sheep's goal
     Vector2 mainGoalSteering = new Vector2(-1, -1);
     if (this.goal.name == "Hunt") {
       mainGoalSteering = hunt();
     } else if (this.goal.name == "Seek Water") {
-      mainGoalSteering = seekWater();
+      mainGoalSteering = seekTile(BoardManager.TileType.Water, SmellType.Water);
     } else if (this.goal.name == "Sleep"){
-      mainGoalSteering = sleep();
+      mainGoalSteering = sleep(this.sleepParticles, 10);
     } else if (this.goal.name == "Wander") {
       mainGoalSteering = wander();
     } else {
@@ -171,7 +161,7 @@ public class WolfController : BaseAgent {
     Vector2 avoidWallsSteering = calculateWallAvoidence();
 
     // The total steering is a weighted sum of the components
-    this.steering = mainGoalSteering * 0.3f + avoidWallsSteering * 0.7f;
+    return mainGoalSteering * 0.3f + avoidWallsSteering * 0.7f;
   }
 
   // ACTION METHOD: Returns the main steering vector to accomplish this action, 
@@ -215,108 +205,9 @@ public class WolfController : BaseAgent {
     return goalSteering;
   }
 
-  // ACTION METHOD: Returns the main steering vector to accomplish this action, 
-  // allong with setting this.action to null and updating insistances when the 
-  // action is finished
-  private Vector2 seekWater() {
-    Vector2 goalSteering = new Vector2(-1, -1);
-    // If we've seen the water and stored its location, just arrive at the water tile
-    // (If we don't have a target to arrive at the vector is (-1, -1))
-    if (this.arrivingAt.x >= 0 && this.arrivingAt.y >= 0) {
-      goalSteering = arriveAt(
-        new Vector2(this.arrivingAt.x * CELL_SIZE, this.arrivingAt.y * CELL_SIZE),
-        new Vector2(currentCell.x * CELL_SIZE, currentCell.y * CELL_SIZE),
-        velocity, SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
-      
-      // If we have arrived at the water, the wolf should drink
-      BoardManager.TileType currentCellType =
-        GameManager.instance.getBoardArray()[(int)currentCell.x, (int)currentCell.y];
-      if (this.arrivingAt.x == this.currentCell.x && this.arrivingAt.y == this.currentCell.y ||
-          currentCellType == BoardManager.TileType.Water) {
-        this.goal.apply(this.insistance);
-        this.goal = null;
-        this.arrivingAt = new Vector2(-1, -1);
-      }
-    } else {
-      // If we haven't seen water yet, check if we see one
-      // Check if within 3 blocks of a water tile (represents the wolf seeing the water and going)
-      Vector2 closeWater = getCloseTile(BoardManager.TileType.Water, 3, currentCell,
-                                        GameManager.instance.getBoardArray());
-      if (closeWater.x >= 0 && closeWater.y >= 0) {
-        this.arrivingAt = closeWater;
-        goalSteering = arriveAt(
-          new Vector2(closeWater.x * CELL_SIZE, closeWater.y * CELL_SIZE),
-          new Vector2(currentCell.x * CELL_SIZE, currentCell.y * CELL_SIZE),
-          velocity, SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
-      } else {
-        // If we still can't see a bush, just follow the smell
-        goalSteering = this.getDirectionOfSmell(SmellType.Water,
-          currentCell, GameManager.instance.getSmellArray()) * MAX_ACCEL;
-      }
-    }
-
-    return goalSteering;
-  }
-
-  // ACTION METHOD: Sleep the wolf for some time, make sure that it is not 
-  // moving.
-  private float sleepStartTime = -1;
-  private Vector2 sleep() {
-    // The first time sleep is called, Start sleeping
-    if (sleepStartTime < 0) {
-      sleepStartTime = Time.time;
-      this.sleepParticles.Play();
-    }
-
-    // If we have been sleeping for 10 seconds
-    if (Time.time > sleepStartTime + 10) {
-      this.goal.apply(this.insistance);
-      this.goal = null;
-      this.arrivingAt = new Vector2(-1, -1);
-      this.sleepStartTime = -1;
-      this.sleepParticles.Stop();
-    }
-
-    // Make sure the wolf isn't moving
-    this.rotation = 0;
-    return new Vector2(-this.velocity.x, -this.velocity.y);
-  }
-
-  // ACTION METHOD make the wolf wander using a seek behavior toward a point.
-  // The point that the wolf is seeking is based on the wolf's current direction
-  // and is offset by some random ammount
-  private float wanderStartTime = -1;
-  private float wanderAngle; // The angle of the target on the circle
-  private Vector2 wander() {
-    // First time wander is called, setup the circle where the seek location
-    // will live
-    if (this.wanderStartTime < 0) {
-      wanderStartTime = Time.time;
-      
-      // Pick an angle between 0 and 360
-      wanderAngle = Random.Range(0, 360);
-    }
-
-    // Update the wnader angle and Calculate the point to seek
-    wanderAngle += Random.Range(-15, 15);
-    Vector2 inFrontOfSheep = this.transform.position + this.transform.right * 2;
-    Vector2 fromCenterToEdge = new Vector2(Mathf.Cos(wanderAngle), Mathf.Sin(wanderAngle));
-    Vector2 pointOnCircle = inFrontOfSheep + fromCenterToEdge;
-
-    if (Time.time > this.wanderStartTime + 10) {
-      this.goal.apply(this.insistance);
-      this.goal = null;
-      this.arrivingAt = new Vector2(-1, -1);
-      this.wanderStartTime = -1;
-    }
-
-    return arriveAt(pointOnCircle, this.transform.position, this.velocity,
-                    SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
-  }
-
   // Calculate rotation, Rotatoin is always in the direction of the 
   // current velocity.
-  private void calculateRotation() {
+  private float calculateRotation() {
     float targetOrientation = Mathf.Rad2Deg * Mathf.Atan2(velocity.y, velocity.x);
     
     // The target rotation depends on the radii for "arive" and "slow"
@@ -342,7 +233,7 @@ public class WolfController : BaseAgent {
     float angSteering = targetRotation - this.rotation;
     if (angSteering > 180) angSteering -= 360;
     if (angSteering < -180) angSteering += 360;
-    this.angularSteering = angSteering;
+    return angSteering;
   }
 
   // Return a steering vector to awoid any walls. Need to avoid High elevation and water.
@@ -371,19 +262,19 @@ public class WolfController : BaseAgent {
 
   // Preform an update on the sheep based on the linear acceleration and rotation.
   // Then move the sheep based on the new velocity and orientatoin.
-  private void applySteering() {
+  private void applySteering(Vector2 linearSteering, float angularSteering) {
     // Begin by clamping the linear / angular acceleration
-    if (steering.magnitude > MAX_ACCEL) {
-      this.steering.Normalize();
-      this.steering *= MAX_ACCEL;
+    if (linearSteering.magnitude > MAX_ACCEL) {
+      linearSteering.Normalize();
+      linearSteering *= MAX_ACCEL;
     }
     if (Mathf.Abs(angularSteering) > MAX_ANGULAR_ACC) {
       angularSteering = angularSteering > 0 ? MAX_ANGULAR_ACC : -MAX_ANGULAR_ACC;
     }
 
     // Update the velocities using the accelerations
-    this.velocity += this.steering;
-    this.rotation += this.angularSteering;
+    this.velocity += linearSteering;
+    this.rotation += angularSteering;
 
     // Clip the velocity/rotation if they are too high
     if (this.velocity.magnitude > MAX_SPEED) {

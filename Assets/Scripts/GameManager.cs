@@ -45,7 +45,6 @@ public class GameManager : MonoBehaviour {
 		boardScript.createScene(this.useSeed, this.seed);
 
 		// Get the board values form the board manager
-		Debug.Log("Setting arrays");
 		this.boardArray = boardScript.getBoardArray();
 		this.smellArray = boardScript.getSmellArray();
 		this.foodArray = boardScript.getFoodArray();
