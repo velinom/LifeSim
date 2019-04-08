@@ -158,13 +158,24 @@ public class BoardManager : MonoBehaviour {
 		}
 	}
 	
-  // Uses the randomly generaed boardArray to place random tiles of the correct type
+  // Uses the randomly generated boardArray to place random tiles of the correct type
 	// on the board by instantiating it and putting it in the right place.
 	private void createBoard() {
 		boardHolder = new GameObject("Board").transform;
 
-		for (int x = 0; x < GameManager.SIZE; x++) {
-			for (int y = 0; y < GameManager.SIZE; y++) {
+		for (int x = -1; x < GameManager.SIZE + 1; x++) {
+			for (int y = -1; y < GameManager.SIZE + 1; y++) {
+				// If we are on the edge of the map, spawn a high-elevation tile to
+				// enclose the map with impassible objects
+				if (x == -1 || x == GameManager.SIZE || y == -1 || y == GameManager.SIZE) {
+					GameObject edgeObject = HIGH_ELEVATION_TILES[Random.Range(0, HIGH_ELEVATION_TILES.Length)];
+					GameObject edgeInstance = Instantiate(
+					  edgeObject, new Vector3(x * GameManager.CELL_SIZE,
+					  y * GameManager.CELL_SIZE, 0f), Quaternion.identity) as GameObject;
+				  edgeInstance.transform.SetParent(boardHolder);
+					continue;
+				}
+
 				GameObject toInstantiate = null;
 				TileType currentType = boardArray[x, y];
 
@@ -416,6 +427,7 @@ public class BoardManager : MonoBehaviour {
 	// To be called by the game manager, randomly makes the board
 	// and instantiates the tiles in their place
 	public void createScene(bool useSeed, int seed) {
+		Debug.Log("Creating board");
 		if (useSeed) Random.InitState(seed);
 
 		// Setup the water and land tiles, then render them

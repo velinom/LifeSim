@@ -70,7 +70,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 74e3bd9de4d8c8a458846a31a06ab09c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  boardScript: {fileID: 0}
 --- !u!114 &114177822606438078
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -82,8 +81,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 13f3bd254dfca754a9b35bb6b9ddaf53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  SIZE: 50
-  CELL_SIZE: 1.2
   NUM_HILLS:
     minimum: 3
     maximum: 5
@@ -144,3 +141,4 @@ MonoBehaviour:
   BUSHES:
   - {fileID: 1237838532870990, guid: b5b15d47544beff4bb115fe4679656c0, type: 2}
   - {fileID: 1750683537384876, guid: b5748b2fe19f5464193c1f5c2a2d5ea5, type: 2}
+  textHolder: {fileID: 0}

@@ -15,7 +15,7 @@ public class GameManager : MonoBehaviour {
 	public static float CELL_SIZE = 1.2f;
 
 	// Used to procedurally generate the board
-	public BoardManager boardScript;
+	private BoardManager boardScript;
 
 	// SEED field that can be set by the player
 	private int seed;
@@ -45,6 +45,7 @@ public class GameManager : MonoBehaviour {
 		boardScript.createScene(this.useSeed, this.seed);
 
 		// Get the board values form the board manager
+		Debug.Log("Setting arrays");
 		this.boardArray = boardScript.getBoardArray();
 		this.smellArray = boardScript.getSmellArray();
 		this.foodArray = boardScript.getFoodArray();

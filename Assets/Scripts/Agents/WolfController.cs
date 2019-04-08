@@ -9,7 +9,6 @@ public class WolfController : BaseAgent {
 
   // Reference to the game manager, contains map and smell info
   // as well as all constants needed from the manager
-  public GameManager GAME_MANAGER;
   private float CELL_SIZE = GameManager.CELL_SIZE;
 
   // Reference to the particle system that should play while the wolf sleeps
@@ -213,8 +212,8 @@ public class WolfController : BaseAgent {
     } else {
       // If we haven't seen a bush yet, check if we see one
       // Check if within 3 blocks of a bush (represents the sheep seeing the bush and going)
-      Vector2 closeBush = getCloseFood(BoardManager.Food.Bush, 3, 
-                                       currentCell, GAME_MANAGER.getFoodArray());
+      Vector2 closeBush = getCloseFood(BoardManager.Food.Bush, 3, currentCell,
+                                       GameManager.instance.getFoodArray());
       if (closeBush.x >= 0 && closeBush.y >= 0) {
         this.arrivingAt = closeBush;
         goalSteering = arriveAt(
@@ -224,7 +223,7 @@ public class WolfController : BaseAgent {
       } else {
         // If we still can't see a bush, just follow the smell
         goalSteering = this.getDirectionOfSmell(SmellType.GroundFood,
-          currentCell, GAME_MANAGER.getSmellArray()) * MAX_ACCEL;
+          currentCell, GameManager.instance.getSmellArray()) * MAX_ACCEL;
       }
     }
 
@@ -246,7 +245,7 @@ public class WolfController : BaseAgent {
       
       // If we have arrived at the water, the wolf should drink
       BoardManager.TileType currentCellType =
-        GAME_MANAGER.getBoardArray()[(int)currentCell.x, (int)currentCell.y];
+        GameManager.instance.getBoardArray()[(int)currentCell.x, (int)currentCell.y];
       if (this.arrivingAt.x == this.currentCell.x && this.arrivingAt.y == this.currentCell.y ||
           currentCellType == BoardManager.TileType.Water) {
         this.goal.apply(this.insistance);
@@ -256,8 +255,8 @@ public class WolfController : BaseAgent {
     } else {
       // If we haven't seen water yet, check if we see one
       // Check if within 3 blocks of a water tile (represents the wolf seeing the water and going)
-      Vector2 closeWater = getCloseTile(BoardManager.TileType.Water, 3,
-                                       currentCell, GAME_MANAGER.getBoardArray());
+      Vector2 closeWater = getCloseTile(BoardManager.TileType.Water, 3, currentCell,
+                                        GameManager.instance.getBoardArray());
       if (closeWater.x >= 0 && closeWater.y >= 0) {
         this.arrivingAt = closeWater;
         goalSteering = arriveAt(
@@ -267,7 +266,7 @@ public class WolfController : BaseAgent {
       } else {
         // If we still can't see a bush, just follow the smell
         goalSteering = this.getDirectionOfSmell(SmellType.Water,
-          currentCell, GAME_MANAGER.getSmellArray()) * MAX_ACCEL;
+          currentCell, GameManager.instance.getSmellArray()) * MAX_ACCEL;
       }
     }
 

@@ -37,7 +37,7 @@ public abstract class BaseAgent : MonoBehaviour {
       }
     }
 
-    Debug.Log("A sheep with: hunger:" + insistance.insistances[InsistanceType.Food] +
+    Debug.Log("A " + name + " with: hunger:" + insistance.insistances[InsistanceType.Food] +
               ", thirst:" + insistance.insistances[InsistanceType.Water] +
               ", sleep:" + insistance.insistances[InsistanceType.Sleep] +
               ", joy:" + insistance.insistances[InsistanceType.Joy] +
