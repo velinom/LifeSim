@@ -24,9 +24,6 @@ public class WolfController : BaseAgent {
   // List of possible actions that the wolf can take
   private List<Action> actions;
 
-  // If the agent has "seen" their goal, store it here 
-  private Vector2 arrivingAt;
-
   // Setup this wolf by initializing fields
   void Start() {
     // Setup the movement consts for the wolf
@@ -38,8 +35,8 @@ public class WolfController : BaseAgent {
     // The radii for the arrive-at behavior
     ARRIVE_RADIUS = 0.5f;
     SLOW_RADIUS = 3;
-    ROTATE_ARRIVE_RAD = 15;
-    ROTATE_SLOW_RAD = 45;
+    ROTATE_ARRIVE_RAD = 5;
+    ROTATE_SLOW_RAD = 50;
 
     // Get the reference to the sleep particles
     this.sleepParticles = GetComponent<ParticleSystem>();
@@ -55,7 +52,7 @@ public class WolfController : BaseAgent {
     setupActions();
 
     // Set arriving at to a dummy vector of (-1, -1)
-    this.arrivingAt = new Vector2(-1, -1);
+    this.target = new Vector2(-1, -1);
   }
 
   // Initialize the fields that the wolf needs for insistance calculations
@@ -118,7 +115,7 @@ public class WolfController : BaseAgent {
     // Determine the Goal or Action that the Sheep will take
     // This goal is set into the field giving the type of action
     if (this.goal == null) {
-      this.goal = determineGoal(this.actions, this.insistance, "wolf");
+      determineGoal(this.actions, this.insistance, "wolf");
     }
 
     // Calculate the steering, this includes the high level goal steering as
@@ -172,17 +169,17 @@ public class WolfController : BaseAgent {
 
     // If we've seen the bush and stored its location, just arrive at the bush
     // (If we don't have a target to arrive at the vector is (-1, -1))
-    if (this.arrivingAt.x >= 0 && this.arrivingAt.y >= 0) {
+    if (this.target.x >= 0 && this.target.y >= 0) {
       goalSteering = arriveAt(
-        new Vector2(this.arrivingAt.x * CELL_SIZE, this.arrivingAt.y * CELL_SIZE),
+        new Vector2(this.target.x * CELL_SIZE, this.target.y * CELL_SIZE),
         new Vector2(currentCell.x * CELL_SIZE, currentCell.y * CELL_SIZE),
         velocity, SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
       
       // If we have arrived at the bush, the sheep should eat
-      if (this.arrivingAt.x == this.currentCell.x && this.arrivingAt.y == this.currentCell.y) {
+      if (this.target.x == this.currentCell.x && this.target.y == this.currentCell.y) {
         this.goal.apply(this.insistance);
         this.goal = null;
-        this.arrivingAt = new Vector2(-1, -1);
+        this.target = new Vector2(-1, -1);
       }
     } else {
       // If we haven't seen a bush yet, check if we see one
@@ -190,7 +187,7 @@ public class WolfController : BaseAgent {
       Vector2 closeBush = getCloseFood(BoardManager.Food.Bush, 3, currentCell,
                                        GameManager.instance.getFoodArray());
       if (closeBush.x >= 0 && closeBush.y >= 0) {
-        this.arrivingAt = closeBush;
+        this.target = closeBush;
         goalSteering = arriveAt(
           new Vector2(closeBush.x * CELL_SIZE, closeBush.y * CELL_SIZE),
           new Vector2(currentCell.x * CELL_SIZE, currentCell.y * CELL_SIZE),
@@ -244,9 +241,15 @@ public class WolfController : BaseAgent {
     RaycastHit2D hit = Physics2D.Raycast(
       this.transform.position, this.transform.right, RAY_LENGTH);
 
+    // If we have a goal and it's seeking water, don't wall-avoid water
+    bool shouldAvoidWater = true;
+    if (this.goal != null) {
+      shouldAvoidWater = this.goal.name != "Seek Water";
+    }
+
     // If we hit a wall with a whisker
     if (hit.collider != null) {
-      if ((hit.transform.tag == "Water" && this.goal.name != "Seek Water") || 
+      if ((hit.transform.tag == "Water" && shouldAvoidWater) || 
            hit.transform.tag == "HighElevation") {
         // Get a point normal to the wall at the point the colider hit.
         Vector2 normal = hit.normal.normalized;

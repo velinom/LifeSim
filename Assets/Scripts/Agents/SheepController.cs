@@ -24,9 +24,6 @@ public class SheepController : BaseAgent {
   // List of possible actions that the sheep can take
   private List<Action> actions;
 
-  // If the agent has "seen" their goal, store it here 
-  private Vector2 arrivingAt;
-
   // Setup this sheep by initializing fields
   void Start() {
     // Set the movement consts for the BaseAgent class
@@ -36,8 +33,8 @@ public class SheepController : BaseAgent {
     MAX_ANGULAR_ACC = 30;
     ARRIVE_RADIUS = 0.5f;
     SLOW_RADIUS = 3;
-    ROTATE_ARRIVE_RAD = 15;
-    ROTATE_SLOW_RAD = 45;
+    ROTATE_ARRIVE_RAD = 5;
+    ROTATE_SLOW_RAD = 50;
 
     // Get the reference to the sleep particles
     this.sleepParticles = GetComponent<ParticleSystem>();
@@ -53,7 +50,7 @@ public class SheepController : BaseAgent {
     setupActions();
 
     // Set arriving at to a dummy vector of (-1, -1)
-    this.arrivingAt = new Vector2(-1, -1);
+    this.target = new Vector2(-1, -1);
   }
 
   // Initialize the fields that the sheep needs for insistance calculations
@@ -115,7 +112,7 @@ public class SheepController : BaseAgent {
     // Determine the Goal or Action that the Sheep will take
     // This goal is set into the field giving the type of action
     if (this.goal == null) {
-      this.goal = determineGoal(this.actions, this.insistance, "sheep");
+      determineGoal(this.actions, this.insistance, "sheep");
     }
 
     // Calculate the steering, this includes the high level goal steering as
@@ -200,9 +197,15 @@ public class SheepController : BaseAgent {
     RaycastHit2D hit = Physics2D.Raycast(
       this.transform.position, this.transform.right, RAY_LENGTH);
 
+    // If we have a goal and it's seeking water, don't wall-avoid water
+    bool shouldAvoidWater = true;
+    if (this.goal != null) {
+      shouldAvoidWater = this.goal.name != "Seek Water";
+    }
+
     // If we hit a wall with a whisker
     if (hit.collider != null) {
-      if ((hit.transform.tag == "Water" && this.goal.name != "Seek Water") || 
+      if ((hit.transform.tag == "Water" && shouldAvoidWater) || 
            hit.transform.tag == "HighElevation") {
         // Get a point normal to the wall at the point the colider hit.
         Vector2 normal = hit.normal.normalized;
@@ -246,10 +249,5 @@ public class SheepController : BaseAgent {
     // Now apply the steering to the sheep
     this.transform.Translate(this.velocity * Time.deltaTime, Space.World);
     this.transform.Rotate(0, 0, this.rotation * Time.deltaTime);
-  }
-
-  // Used for displaying the info about this sheep when it is clicked
-  void OnMouseDown() {
-    Debug.Log("you clicked a sheep");
   }
 }

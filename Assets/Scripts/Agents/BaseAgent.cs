@@ -42,6 +42,10 @@ public abstract class BaseAgent : MonoBehaviour {
   // Is frequently null if the agent is wandering, sleeping, or following a smell
   public Vector2 target;
 
+  // The HUD Controller that this agent's info will be passed to for display when 
+  // the agent is selected
+  public HudController hudController;
+
   // Uses the transfrom of this GameObject to determine what cell the sheep is 
   // currently in.
   public Vector2 getCurrentCell() {
@@ -53,7 +57,7 @@ public abstract class BaseAgent : MonoBehaviour {
 
   // Picks the best goal in the list of actions to minimize the sum of the insistances
   // squared. Accounts for the time that actions take
-  public Action determineGoal(List<Action> actions, Insistance insistance, string name) {
+  public void determineGoal(List<Action> actions, Insistance insistance, string name) {
     // Loop over all available actions and determine the one that minimizes the 
     // sum of insistances sqared. Use the estimated time to complete each action
     // to discount the other actions when calculating
@@ -79,7 +83,7 @@ public abstract class BaseAgent : MonoBehaviour {
               ", joy:" + insistance.insistances[InsistanceType.Joy] +
               ", Decided to " + bestAction.name);
 
-    return bestAction;
+    this.goal = bestAction;
   }
 
   // ACTION METHOD: Returns the main steering vector to accomplish this action, 
@@ -319,5 +323,10 @@ public abstract class BaseAgent : MonoBehaviour {
     // The target acceleration is the difference between the current velocity
     // and the target velocity
     return targetVelocity - currentVel;
+  }
+
+  // Used for displaying the info about this agent when it is clicked
+  void OnMouseDown() {
+    hudController.setInfo(this);
   }
 }

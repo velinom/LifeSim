@@ -23,6 +23,7 @@ GameObject:
   - component: {fileID: 114794670211674096}
   - component: {fileID: 198261139962192546}
   - component: {fileID: 199159769746178926}
+  - component: {fileID: 58132889204936996}
   m_Layer: 0
   m_Name: Wolf01
   m_TagString: Untagged
@@ -37,12 +38,27 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1025498825796132}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 54.661, y: 36.327, z: 0}
+  m_LocalPosition: {x: 20.2, y: 19, z: 0}
   m_LocalScale: {x: 0.25, y: 0.25, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!58 &58132889204936996
+CircleCollider2D:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1025498825796132}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0, y: 0}
+  serializedVersion: 2
+  m_Radius: 2.15
 --- !u!114 &114794670211674096
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -54,8 +70,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a9f4ffa07f241f44f90018e5c67dd68e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GAME_MANAGER: {fileID: 114039265379607320, guid: 4f8cc3e8a55843543954c61d9c458317,
-    type: 2}
+  CELL_SIZE: 1.2
+  MAX_SPEED: 0
+  MAX_ACCEL: 0
+  MAX_ROTATION: 0
+  MAX_ANGULAR_ACC: 0
+  ARRIVE_RADIUS: 0
+  SLOW_RADIUS: 0
+  ROTATE_ARRIVE_RAD: 0
+  ROTATE_SLOW_RAD: 0
+  velocity: {x: 0, y: 0}
+  rotation: 0
+  currentCell: {x: 0, y: 0}
+  target: {x: 0, y: 0}
+  hudController: {fileID: 0}
 --- !u!198 &198261139962192546
 ParticleSystem:
   m_ObjectHideFlags: 1
@@ -115,7 +143,7 @@ ParticleSystem:
   moveWithTransform: 1
   moveWithCustomTransform: {fileID: 0}
   scalingMode: 1
-  randomSeed: -2078767024
+  randomSeed: 1270751060
   InitialModule:
     serializedVersion: 3
     enabled: 1
