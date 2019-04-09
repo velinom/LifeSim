@@ -10,7 +10,6 @@ namespace Models {
     public PropagatingSmell(int cellsAway, Vector2 location) {
       this.cellsAway = cellsAway;
       this.location = location;
-    }
-          
+    }  
   }
 }

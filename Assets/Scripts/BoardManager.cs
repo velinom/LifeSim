@@ -1,5 +1,4 @@
 ﻿using Models;
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -309,9 +308,9 @@ public class BoardManager : MonoBehaviour {
 				// at the current tile
 				Smell curLocSmell = new Smell();
 				foreach (Vector2 loc in treeLocations) {
-					float deltaX = Math.Abs(loc.x - x);
-					float deltaY = Math.Abs(loc.y - y);
-					double distance = Math.Sqrt(deltaX * deltaX + deltaY * deltaY);
+					float deltaX = Mathf.Abs(loc.x - x);
+					float deltaY = Mathf.Abs(loc.y - y);
+					double distance = Mathf.Sqrt(deltaX * deltaX + deltaY * deltaY);
 
 					if (distance < 0.1) {
 						curLocSmell.addToSmell(SmellType.TreeFood, 1);
