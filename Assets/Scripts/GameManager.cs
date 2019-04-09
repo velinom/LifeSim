@@ -14,6 +14,13 @@ public class GameManager : MonoBehaviour {
 	// The size of each tile in the board, in hundreds of px
 	public static float CELL_SIZE = 1.2f;
 
+	// Game Object prefabs passed in through unity to spawn when needed
+	public GameObject[] SHEEP;
+	public GameObject[] WOLVES;
+
+	// Transform to hold all the animals that the game manager spawns
+	private Transform animalHolder; 
+
 	// Used to procedurally generate the board
 	private BoardManager boardScript;
 
@@ -26,16 +33,21 @@ public class GameManager : MonoBehaviour {
 	private BoardManager.Food[, ] foodArray;
 	private BoardManager.TileType[, ] boardArray;
 
+	// Animal information, animals are spawned here
+	private List<GameObject> spawnedSheep;
+
 	// Called when the GameManager is instantiated for the first time. Initialize values
 	// and sets up the singleton instance
 	void Awake () {
-		// set up instance
+		// set up singleton instance
 		if (instance == null)
 			instance = this;
 		else if (instance != this)
 			Destroy(gameObject);
-
 		DontDestroyOnLoad(gameObject);
+
+		// Initialize
+		this.spawnedSheep = new List<GameObject>();
 	}
 
   // Initializes the game
@@ -48,6 +60,24 @@ public class GameManager : MonoBehaviour {
 		this.boardArray = boardScript.getBoardArray();
 		this.smellArray = boardScript.getSmellArray();
 		this.foodArray = boardScript.getFoodArray();
+	}
+
+	// Spawn an animal of the given name at the given location
+	public void spawnAnimalAtLocation(string name, Vector2 location) {
+		if (animalHolder == null) animalHolder = new GameObject("Animals").transform;
+
+		GameObject toSpawn = null;
+		if (name == "sheep") {
+			toSpawn = SHEEP[Random.Range(0, SHEEP.Length)];
+			this.spawnedSheep.Add(toSpawn);
+		} else if (name == "wolf") {
+			toSpawn = WOLVES[Random.Range(0, WOLVES.Length)];
+		} else {
+			Debug.Log("Attempted to spawn unrecognized animal");
+		}
+
+		GameObject spawned = Instantiate(toSpawn, location, Quaternion.identity) as GameObject;
+		spawned.transform.SetParent(animalHolder);
 	}
 
 	/*
