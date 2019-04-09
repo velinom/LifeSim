@@ -4,8 +4,12 @@ using UnityEngine;
 using UnityEngine.UI;
 
 // Hud controller that shows information about the currently selected
-// agent in the bottom right of the screen
+// agent in the bottom right of the screen.
+// HudController is a SINGLETON
 public class HudController : MonoBehaviour {
+
+	// Singleton instance, instantiated in Awake
+	public static HudController instance = null;
 
 	// The modes that the hud can be in.
 	private enum Mode { AddSheep, AddWolf, Select }
@@ -27,8 +31,16 @@ public class HudController : MonoBehaviour {
 	// The current mode that the HUD is in
 	private Mode mode;
 	
-	// Initialize what needs to be
+	// Setup singleton and initialize what needs to be
 	public void Start() {
+		// set up singleton instance
+		if (instance == null)
+			instance = this;
+		else if (instance != this)
+			Destroy(gameObject);
+		DontDestroyOnLoad(gameObject);
+
+		// Initialize values
 		this.insistanceTexts = new Dictionary<InsistanceType, Text>();
 		this.mode = Mode.Select;
 	}

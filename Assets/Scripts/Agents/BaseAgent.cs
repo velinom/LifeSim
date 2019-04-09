@@ -42,10 +42,6 @@ public abstract class BaseAgent : MonoBehaviour {
   // Is frequently null if the agent is wandering, sleeping, or following a smell
   public Vector2 target;
 
-  // The HUD Controller that this agent's info will be passed to for display when 
-  // the agent is selected
-  public HudController hudController;
-
   // Uses the transfrom of this GameObject to determine what cell the sheep is 
   // currently in.
   public Vector2 getCurrentCell() {
@@ -327,6 +323,6 @@ public abstract class BaseAgent : MonoBehaviour {
 
   // Used for displaying the info about this agent when it is clicked
   void OnMouseDown() {
-    hudController.setInfo(this);
+    HudController.instance.setInfo(this);
   }
 }
