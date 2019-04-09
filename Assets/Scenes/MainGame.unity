@@ -1061,16 +1061,6 @@ Prefab:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 114039265379607320, guid: 4f8cc3e8a55843543954c61d9c458317,
-        type: 2}
-      propertyPath: SHEEP.Array.size
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 114039265379607320, guid: 4f8cc3e8a55843543954c61d9c458317,
-        type: 2}
-      propertyPath: WOLVES.Array.size
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 4735847098984210, guid: 4f8cc3e8a55843543954c61d9c458317, type: 2}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -1108,24 +1098,6 @@ Prefab:
       propertyPath: textHolder
       value: 
       objectReference: {fileID: 1763816225}
-    - target: {fileID: 114039265379607320, guid: 4f8cc3e8a55843543954c61d9c458317,
-        type: 2}
-      propertyPath: SHEEP.Array.data[0]
-      value: 
-      objectReference: {fileID: 1365528310729720, guid: d5812f94b481a7a4ab3966a594999e79,
-        type: 2}
-    - target: {fileID: 114039265379607320, guid: 4f8cc3e8a55843543954c61d9c458317,
-        type: 2}
-      propertyPath: SHEEP.Array.data[1]
-      value: 
-      objectReference: {fileID: 1456944601335318, guid: 9e3c878058b785b418367d61e19fd5bd,
-        type: 2}
-    - target: {fileID: 114039265379607320, guid: 4f8cc3e8a55843543954c61d9c458317,
-        type: 2}
-      propertyPath: WOLVES.Array.data[0]
-      value: 
-      objectReference: {fileID: 1025498825796132, guid: a8ef8a9a1a4c1d7418d17a5e1b48e02a,
-        type: 2}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 4f8cc3e8a55843543954c61d9c458317, type: 2}
   m_IsPrefabParent: 0

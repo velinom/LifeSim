@@ -70,6 +70,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 74e3bd9de4d8c8a458846a31a06ab09c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  SHEEP:
+  - {fileID: 1365528310729720, guid: d5812f94b481a7a4ab3966a594999e79, type: 2}
+  - {fileID: 1456944601335318, guid: 9e3c878058b785b418367d61e19fd5bd, type: 2}
+  WOLVES:
+  - {fileID: 1025498825796132, guid: a8ef8a9a1a4c1d7418d17a5e1b48e02a, type: 2}
 --- !u!114 &114177822606438078
 MonoBehaviour:
   m_ObjectHideFlags: 1
