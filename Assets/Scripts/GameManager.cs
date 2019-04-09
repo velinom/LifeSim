@@ -94,5 +94,4 @@ public class GameManager : MonoBehaviour {
 	public Smell[, ] getSmellArray() { return this.smellArray; }
 	public BoardManager.Food[, ] getFoodArray() { return this.foodArray; }
 	public BoardManager.TileType[, ] getBoardArray() { return this.boardArray; }
-
 }

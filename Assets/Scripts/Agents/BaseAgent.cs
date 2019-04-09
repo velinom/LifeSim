@@ -222,6 +222,60 @@ public abstract class BaseAgent : MonoBehaviour {
                     SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
   }
 
+  // Return a steering vector to awoid any walls. Need to avoid High elevation and water.
+  // Done by using short "whisker" ray-casts and moving to a spot normal to the wall
+  // if the whiskers hit something. Use one long ray forward, and two shorter side rays.
+  private float MAIN_RAY_LENGTH = 2;
+  private float SIDE_RAY_LENGTH = 0.8f;
+  public Vector2 calculateWallAvoidence() {
+    // If we have a goal and it's seeking water, don't wall-avoid water
+    bool shouldAvoidWater = true;
+    if (this.goal != null) {
+      shouldAvoidWater = this.goal.name != "Seek Water";
+    }
+
+    // Preform the main whisker ray-cast
+    RaycastHit2D hit = Physics2D.Raycast(transform.position, transform.right, MAIN_RAY_LENGTH);
+    if (hit.collider != null) {
+      if ((hit.transform.tag == "Water" && shouldAvoidWater) || 
+           hit.transform.tag == "HighElevation") {
+        // Get a point normal to the wall at the point the colider hit.
+        Vector2 normal = hit.normal.normalized;
+        Vector2 seekPoint = hit.point + hit.normal * 1.5f;
+        Vector2 curLoc = new Vector2(currentCell.x * CELL_SIZE, currentCell.y * CELL_SIZE);
+        return arriveAt(seekPoint, curLoc, this.velocity, SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
+      }
+    }
+    // Preform the side whisker ray-casts
+    Vector3 leftDirection = Quaternion.AngleAxis(-40, transform.forward) * transform.right;
+    RaycastHit2D lSideHit = Physics2D.Raycast(transform.position, leftDirection, SIDE_RAY_LENGTH);
+    if (lSideHit.collider != null) {
+      if ((lSideHit.transform.tag == "Water" && shouldAvoidWater) || 
+           lSideHit.transform.tag == "HighElevation") {
+        // Get a point normal to the wall at the point the colider hit.
+        Vector2 normal = lSideHit.normal.normalized;
+        Vector2 seekPoint = lSideHit.point + normal * 0.8f;
+        Vector2 curLoc = new Vector2(currentCell.x * CELL_SIZE, currentCell.y * CELL_SIZE);
+        return arriveAt(seekPoint, curLoc, this.velocity, SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
+      }
+    }
+    Vector3 rightDirection = Quaternion.AngleAxis(40, transform.forward) * transform.right;
+    RaycastHit2D rSideHit = Physics2D.Raycast(
+      this.transform.position, rightDirection, SIDE_RAY_LENGTH);
+    if (rSideHit.collider != null) {
+      if ((rSideHit.transform.tag == "Water" && shouldAvoidWater) || 
+           rSideHit.transform.tag == "HighElevation") {
+        // Get a point normal to the wall at the point the colider hit.
+        Vector2 normal = rSideHit.normal.normalized;
+        Vector2 seekPoint = rSideHit.point + normal * 0.8f;
+        Vector2 curLoc = new Vector2(currentCell.x * CELL_SIZE, currentCell.y * CELL_SIZE);
+        return arriveAt(seekPoint, curLoc, this.velocity, SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
+      }
+    }
+
+    return new Vector2(0, 0);
+  }
+
   // Mutates the given insistance by increasing all insistances based on their
   // growth rates TODO MOVE TO CLASS
   public void increaseInsistances(Insistance insistance) {

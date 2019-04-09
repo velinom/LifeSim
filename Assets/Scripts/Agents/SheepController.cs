@@ -8,10 +8,7 @@ public class SheepController : BaseAgent {
 
   // Reference to the particle system that should play while the agent sleeps
   private ParticleSystem sleepParticles;
-
-  // Parameters for wall avoidence
-  private const float RAY_LENGTH = 2;
-
+  
   // The max insistance any type can start at, insistances start at a
   // random value below this one.
   private const float MAX_START_INSISTANCE = 5.0f;
@@ -186,36 +183,6 @@ public class SheepController : BaseAgent {
     if (angSteering > 180) angSteering -= 360;
     if (angSteering < -180) angSteering += 360;
     return angSteering;
-  }
-
-  // Return a steering vector to awoid any walls. Need to avoi High elevation and water.
-  // Done by using short "whisker" ray-casts and moving to a spot normal to the wall
-  // if the whiskers hit something.
-  private Vector2 calculateWallAvoidence() {
-    // Preform the whisker ray-cast
-    RaycastHit2D hit = Physics2D.Raycast(
-      this.transform.position, this.transform.right, RAY_LENGTH);
-
-    // If we have a goal and it's seeking water, don't wall-avoid water
-    bool shouldAvoidWater = true;
-    if (this.goal != null) {
-      shouldAvoidWater = this.goal.name != "Seek Water";
-    }
-
-    // If we hit a wall with a whisker
-    if (hit.collider != null) {
-      if ((hit.transform.tag == "Water" && shouldAvoidWater) || 
-           hit.transform.tag == "HighElevation") {
-        // Get a point normal to the wall at the point the colider hit.
-        Vector2 normal = hit.normal.normalized;
-        Vector2 seekPoint = hit.point + hit.normal * 1.5f;
-
-        Vector2 curLoc = new Vector2(currentCell.x * CELL_SIZE, currentCell.y * CELL_SIZE);
-        return arriveAt(seekPoint, curLoc, this.velocity, SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
-      }
-    }
-
-    return new Vector2(0, 0);
   }
 
   // Preform an update on the sheep based on the linear acceleration and rotation.
