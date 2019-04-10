@@ -71,16 +71,17 @@ public class GameManager : MonoBehaviour {
 		BaseAgent toSpawn = null;
 		if (name == "sheep") {
 			toSpawn = SHEEP[Random.Range(0, SHEEP.Length)];
-			this.spawnedSheep.Add(toSpawn);
+			BaseAgent spawned = Instantiate(toSpawn, location, Quaternion.identity);
+			spawned.transform.SetParent(animalHolder);
+			this.spawnedSheep.Add(spawned);
 		} else if (name == "wolf") {
 			toSpawn = WOLVES[Random.Range(0, WOLVES.Length)];
-			this.spawnedWolves.Add(toSpawn);
+			BaseAgent spawned = Instantiate(toSpawn, location, Quaternion.identity);
+			spawned.transform.SetParent(animalHolder);
+			this.spawnedWolves.Add(spawned);
 		} else {
 			Debug.Log("Attempted to spawn unrecognized animal");
 		}
-
-		BaseAgent spawned = Instantiate(toSpawn, location, Quaternion.identity);
-		spawned.transform.SetParent(animalHolder);
 	}
 
 	/*

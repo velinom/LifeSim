@@ -281,9 +281,29 @@ public abstract class BaseAgent : MonoBehaviour {
   // If there will be a collision, get repelled from the point of collision
   private const float COLLISION_AVOIDANCE_RAD = 4;
   public Vector2 calculateCollisionAvoidance() {
-    foreach (BaseAgent sheep in GameManager.instance.getSpawnedSheep())
+    Vector2 steering = new Vector2(0, 0);
+    foreach (BaseAgent sheep in GameManager.instance.getSpawnedSheep()) {
+      Vector2 relativePosition = this.transform.position - sheep.transform.position;
+      if (relativePosition.magnitude < COLLISION_AVOIDANCE_RAD) {
+        // Determine the point of closest approach
+        Vector2 relativeVelocity = this.velocity - sheep.velocity;
+        float timeToClosest = Vector2.Dot(relativePosition, relativeVelocity) / 
+          (relativeVelocity.magnitude * relativeVelocity.magnitude);
+        Vector2 projectedLoc = (Vector2)transform.position + (this.velocity * timeToClosest);
+        Vector2 sheepProjLoc = (Vector2) sheep.transform.position + (sheep.velocity * timeToClosest);
+        Vector2 betweenClosest = projectedLoc - sheepProjLoc;
+        if (betweenClosest.magnitude < 0.9) {
+          // Scale force with the inverse of the distance
+          Vector2 awayFromSheep = (Vector2)transform.position - sheepProjLoc;
+          float scale = 1.0f / awayFromSheep.magnitude;
+          awayFromSheep.Normalize();
+          awayFromSheep *= scale;
+          steering += awayFromSheep;
+        }
+      }
+    }
 
-    return new Vector2(0, 0);
+    return steering;
   }
 
   // Mutates the given insistance by increasing all insistances based on their
