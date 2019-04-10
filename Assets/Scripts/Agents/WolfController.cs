@@ -156,8 +156,16 @@ public class WolfController : BaseAgent {
     // Cast a ray in front of the wolf to determine if there is a wall there
     Vector2 avoidWallsSteering = calculateWallAvoidance();
 
+    // Collision Avoidence:
+    // use distnace at closest approach to avoid collisions
+    Vector2 avoidCollisionSteering = calculateCollisionAvoidance();
+
+    if (avoidWallsSteering.magnitude < 0.001 && avoidCollisionSteering.magnitude < 0.001) {
+      return mainGoalSteering;
+    }
+
     // The total steering is a weighted sum of the components
-    return mainGoalSteering * 0.2f + avoidWallsSteering * 0.8f;
+    return mainGoalSteering * 0.1f + avoidWallsSteering * 0.4f + avoidCollisionSteering * 0.5f;
   }
 
   // ACTION METHOD: Returns the main steering vector to accomplish this action, 

@@ -282,6 +282,8 @@ public abstract class BaseAgent : MonoBehaviour {
   private const float COLLISION_AVOIDANCE_RAD = 4;
   public Vector2 calculateCollisionAvoidance() {
     Vector2 steering = new Vector2(0, 0);
+
+    // Avoid sheep
     foreach (BaseAgent sheep in GameManager.instance.getSpawnedSheep()) {
       Vector2 relativePosition = this.transform.position - sheep.transform.position;
       if (relativePosition.magnitude < COLLISION_AVOIDANCE_RAD) {
@@ -299,6 +301,27 @@ public abstract class BaseAgent : MonoBehaviour {
           awayFromSheep.Normalize();
           awayFromSheep *= scale;
           steering += awayFromSheep;
+        }
+      }
+    }
+    // Avoid wolves
+    foreach (BaseAgent wolf in GameManager.instance.getSpawnedWolves()) {
+      Vector2 relativePosition = this.transform.position - wolf.transform.position;
+      if (relativePosition.magnitude < COLLISION_AVOIDANCE_RAD) {
+        // Determine the point of closest approach
+        Vector2 relativeVelocity = this.velocity - wolf.velocity;
+        float timeToClosest = Vector2.Dot(relativePosition, relativeVelocity) / 
+          (relativeVelocity.magnitude * relativeVelocity.magnitude);
+        Vector2 projectedLoc = (Vector2)transform.position + (this.velocity * timeToClosest);
+        Vector2 wolfProjLoc = (Vector2) wolf.transform.position + (wolf.velocity * timeToClosest);
+        Vector2 betweenClosest = projectedLoc - wolfProjLoc;
+        if (betweenClosest.magnitude < 0.9) {
+          // Scale force with the inverse of the distance
+          Vector2 awayFromWolf = (Vector2)transform.position - wolfProjLoc;
+          float scale = 1.0f / awayFromWolf.magnitude;
+          awayFromWolf.Normalize();
+          awayFromWolf *= scale;
+          steering += awayFromWolf;
         }
       }
     }
