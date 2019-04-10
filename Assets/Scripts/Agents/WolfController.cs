@@ -27,8 +27,8 @@ public class WolfController : BaseAgent {
   void Start() {
     // Setup the movement consts for the wolf
     // The max speed / accel (Force) for this wolf
-    MAX_SPEED = 3.3f;
-    MAX_ACCEL = 10;
+    MAX_SPEED = 2.8f;
+    MAX_ACCEL = 5;
     MAX_ROTATION = 179;
     MAX_ANGULAR_ACC = 30;
     // The radii for the arrive-at behavior
@@ -154,10 +154,10 @@ public class WolfController : BaseAgent {
     
     // Wall Avoidence:
     // Cast a ray in front of the wolf to determine if there is a wall there
-    Vector2 avoidWallsSteering = calculateWallAvoidence();
+    Vector2 avoidWallsSteering = calculateWallAvoidance();
 
     // The total steering is a weighted sum of the components
-    return mainGoalSteering * 0.3f + avoidWallsSteering * 0.7f;
+    return mainGoalSteering * 0.2f + avoidWallsSteering * 0.8f;
   }
 
   // ACTION METHOD: Returns the main steering vector to accomplish this action, 

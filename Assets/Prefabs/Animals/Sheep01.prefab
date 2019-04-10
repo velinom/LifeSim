@@ -26,7 +26,7 @@ GameObject:
   - component: {fileID: 58875514491855842}
   m_Layer: 0
   m_Name: Sheep01
-  m_TagString: Untagged
+  m_TagString: Sheep
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -83,7 +83,6 @@ MonoBehaviour:
   rotation: 0
   currentCell: {x: 0, y: 0}
   target: {x: 0, y: 0}
-  hudController: {fileID: 0}
 --- !u!198 &198920207251419900
 ParticleSystem:
   m_ObjectHideFlags: 1

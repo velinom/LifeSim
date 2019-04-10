@@ -15,8 +15,8 @@ public class GameManager : MonoBehaviour {
 	public static float CELL_SIZE = 1.2f;
 
 	// Game Object prefabs passed in through unity to spawn when needed
-	public GameObject[] SHEEP;
-	public GameObject[] WOLVES;
+	public BaseAgent[] SHEEP;
+	public BaseAgent[] WOLVES;
 
 	// Transform to hold all the animals that the game manager spawns
 	private Transform animalHolder; 
@@ -34,7 +34,8 @@ public class GameManager : MonoBehaviour {
 	private BoardManager.TileType[, ] boardArray;
 
 	// Animal information, animals are spawned here
-	private List<GameObject> spawnedSheep;
+	private List<BaseAgent> spawnedSheep;
+	private List<BaseAgent> spawnedWolves;
 
 	// Called when the GameManager is instantiated for the first time. Initialize values
 	// and sets up the singleton instance
@@ -47,7 +48,8 @@ public class GameManager : MonoBehaviour {
 		DontDestroyOnLoad(gameObject);
 
 		// Initialize
-		this.spawnedSheep = new List<GameObject>();
+		this.spawnedSheep = new List<BaseAgent>();
+		this.spawnedWolves = new List<BaseAgent>();
 	}
 
   // Initializes the game
@@ -66,17 +68,18 @@ public class GameManager : MonoBehaviour {
 	public void spawnAnimalAtLocation(string name, Vector2 location) {
 		if (animalHolder == null) animalHolder = new GameObject("Animals").transform;
 
-		GameObject toSpawn = null;
+		BaseAgent toSpawn = null;
 		if (name == "sheep") {
 			toSpawn = SHEEP[Random.Range(0, SHEEP.Length)];
 			this.spawnedSheep.Add(toSpawn);
 		} else if (name == "wolf") {
 			toSpawn = WOLVES[Random.Range(0, WOLVES.Length)];
+			this.spawnedWolves.Add(toSpawn);
 		} else {
 			Debug.Log("Attempted to spawn unrecognized animal");
 		}
 
-		GameObject spawned = Instantiate(toSpawn, location, Quaternion.identity) as GameObject;
+		BaseAgent spawned = Instantiate(toSpawn, location, Quaternion.identity);
 		spawned.transform.SetParent(animalHolder);
 	}
 
@@ -94,4 +97,6 @@ public class GameManager : MonoBehaviour {
 	public Smell[, ] getSmellArray() { return this.smellArray; }
 	public BoardManager.Food[, ] getFoodArray() { return this.foodArray; }
 	public BoardManager.TileType[, ] getBoardArray() { return this.boardArray; }
+	public List<BaseAgent> getSpawnedSheep() { return this.spawnedSheep; }
+	public List<BaseAgent> getSpawnedWolves() { return this.spawnedWolves; }
 }

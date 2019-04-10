@@ -8,7 +8,7 @@ public class SheepController : BaseAgent {
 
   // Reference to the particle system that should play while the agent sleeps
   private ParticleSystem sleepParticles;
-  
+
   // The max insistance any type can start at, insistances start at a
   // random value below this one.
   private const float MAX_START_INSISTANCE = 5.0f;
@@ -148,7 +148,7 @@ public class SheepController : BaseAgent {
     
     // Wall Avoidence:
     // Cast a ray in front of the sheep to determine if there is a wall there
-    Vector2 avoidWallsSteering = calculateWallAvoidence();
+    Vector2 avoidWallsSteering = calculateWallAvoidance();
 
     // The total steering is a weighted sum of the components
     return mainGoalSteering * 0.3f + avoidWallsSteering * 0.7f;

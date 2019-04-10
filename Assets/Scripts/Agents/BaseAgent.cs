@@ -227,7 +227,7 @@ public abstract class BaseAgent : MonoBehaviour {
   // if the whiskers hit something. Use one long ray forward, and two shorter side rays.
   private float MAIN_RAY_LENGTH = 2;
   private float SIDE_RAY_LENGTH = 0.8f;
-  public Vector2 calculateWallAvoidence() {
+  public Vector2 calculateWallAvoidance() {
     // If we have a goal and it's seeking water, don't wall-avoid water
     bool shouldAvoidWater = true;
     if (this.goal != null) {
@@ -241,7 +241,7 @@ public abstract class BaseAgent : MonoBehaviour {
            hit.transform.tag == "HighElevation") {
         // Get a point normal to the wall at the point the colider hit.
         Vector2 normal = hit.normal.normalized;
-        Vector2 seekPoint = hit.point + hit.normal * 1.5f;
+        Vector2 seekPoint = hit.point + hit.normal * 1.8f;
         Vector2 curLoc = new Vector2(currentCell.x * CELL_SIZE, currentCell.y * CELL_SIZE);
         return arriveAt(seekPoint, curLoc, this.velocity, SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
       }
@@ -254,7 +254,7 @@ public abstract class BaseAgent : MonoBehaviour {
            lSideHit.transform.tag == "HighElevation") {
         // Get a point normal to the wall at the point the colider hit.
         Vector2 normal = lSideHit.normal.normalized;
-        Vector2 seekPoint = lSideHit.point + normal * 0.8f;
+        Vector2 seekPoint = lSideHit.point + normal * 1.2f;
         Vector2 curLoc = new Vector2(currentCell.x * CELL_SIZE, currentCell.y * CELL_SIZE);
         return arriveAt(seekPoint, curLoc, this.velocity, SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
       }
@@ -272,6 +272,16 @@ public abstract class BaseAgent : MonoBehaviour {
         return arriveAt(seekPoint, curLoc, this.velocity, SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
       }
     }
+
+    return new Vector2(0, 0);
+  }
+
+  // Gets all the sheep and wolves within the fixed radius of the agent.
+  // Calculate the point of closest approach for the agent and each sheep or wolf
+  // If there will be a collision, get repelled from the point of collision
+  private const float COLLISION_AVOIDANCE_RAD = 4;
+  public Vector2 calculateCollisionAvoidance() {
+    foreach (BaseAgent sheep in GameManager.instance.getSpawnedSheep())
 
     return new Vector2(0, 0);
   }

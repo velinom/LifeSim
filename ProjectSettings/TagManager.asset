@@ -7,6 +7,8 @@ TagManager:
   - HighElevation
   - Water
   - Tree
+  - Sheep
+  - Wolf
   layers:
   - Default
   - TransparentFX

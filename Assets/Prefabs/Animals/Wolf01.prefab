@@ -26,7 +26,7 @@ GameObject:
   - component: {fileID: 58132889204936996}
   m_Layer: 0
   m_Name: Wolf01
-  m_TagString: Untagged
+  m_TagString: Wolf
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -39,7 +39,7 @@ Transform:
   m_GameObject: {fileID: 1025498825796132}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 20.2, y: 19, z: 0}
-  m_LocalScale: {x: 0.25, y: 0.25, z: 1}
+  m_LocalScale: {x: 0.22, y: 0.25, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
@@ -83,7 +83,6 @@ MonoBehaviour:
   rotation: 0
   currentCell: {x: 0, y: 0}
   target: {x: 0, y: 0}
-  hudController: {fileID: 0}
 --- !u!198 &198261139962192546
 ParticleSystem:
   m_ObjectHideFlags: 1
