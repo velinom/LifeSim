@@ -1,4 +1,5 @@
 ﻿using Models;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -50,6 +51,45 @@ public class GameManager : MonoBehaviour {
 		// Initialize
 		this.spawnedSheep = new List<BaseAgent>();
 		this.spawnedWolves = new List<BaseAgent>();
+
+		// Make sure that sheep smells update every so many seconds
+		InvokeRepeating("UpdateSheepSmell", 1.0f, 2.0f);
+	}
+
+	// Called every so many seconds to propogate the sheep's smell through the board
+	// as the sheep move arround. Calling is setup in the Awake method to happen a fixed
+	// number of seconds
+	private void UpdateSheepSmell() {
+		Debug.Log("Game Manager updating sheep smells");
+		StartCoroutine(updateSheepSmellThreaded());
+	}
+
+	// Threaded version of the update smell function that doesn't hog all the system 
+	// resources
+	IEnumerator updateSheepSmellThreaded() {
+		// Begin by setting the sheep smell to 0 for the whole map.
+		for (int i = 0; i < SIZE; i++) {
+			for (int j = 0; j < SIZE; j++) {
+			  smellArray[i, j].setSmellToZero(SmellType.MeatFood);
+			}
+		}
+
+		// Need to copy list of sheep so that new sheep aren't added in the middel of the co-routine
+		List<BaseAgent> sheepCopy = new List<BaseAgent>();
+		foreach (BaseAgent sheep in this.spawnedSheep) {
+			sheepCopy.Add(sheep);
+		}
+
+		// Now for every sheep, propogate its smell through the map
+		foreach (BaseAgent sheep in sheepCopy) {
+			yield return null;
+			Vector2 sheepCell = sheep.getCurrentCell();
+			List<BoardManager.TileType> impassable =  new List<BoardManager.TileType> {
+				BoardManager.TileType.High, BoardManager.TileType.Water
+			};
+			boardScript.propagateSmellFromRoot(sheepCell, SmellType.MeatFood, impassable);
+		}
+		Debug.Log("Finished propogating smells");
 	}
 
   // Initializes the game

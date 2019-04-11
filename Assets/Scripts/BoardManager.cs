@@ -341,7 +341,7 @@ public class BoardManager : MonoBehaviour {
 	// Propogate the smell from a single object radiating the smell of the given
 	// type throughout the whole map. Allows for the given smell not to be able
 	// to pass through tile-types from the given "impassable" list
-	private void propagateSmellFromRoot(Vector2 root, SmellType type, List<TileType> impassable) {
+	public void propagateSmellFromRoot(Vector2 root, SmellType type, List<TileType> impassable) {
 		Queue<PropagatingSmell> openList = new Queue<PropagatingSmell>();
 		HashSet<Vector2> closedList = new HashSet<Vector2>();
 		openList.Enqueue(new PropagatingSmell(1, root));
