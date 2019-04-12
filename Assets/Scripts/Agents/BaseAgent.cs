@@ -312,7 +312,7 @@ public abstract class BaseAgent : MonoBehaviour {
 
     // Avoid sheep
     foreach (BaseAgent sheep in GameManager.instance.getSpawnedSheep()) {
-      if (sheep == null) break;
+      if (sheep == null) continue;
 
       Vector2 relativePosition = this.transform.position - sheep.transform.position;
       if (relativePosition.magnitude < COLLISION_AVOIDANCE_RAD) {
@@ -325,11 +325,11 @@ public abstract class BaseAgent : MonoBehaviour {
         Vector2 betweenClosest = projectedLoc - sheepProjLoc;
         if (betweenClosest.magnitude < 0.9) {
           // Scale force with the inverse of the distance
-          Vector2 awayFromSheep = (Vector2)transform.position - sheepProjLoc;
-          float scale = 1.0f / awayFromSheep.magnitude;
-          awayFromSheep.Normalize();
-          awayFromSheep *= scale;
-          steering += awayFromSheep;
+          //Vector2 awayFromSheep = (Vector2)transform.position - sheepProjLoc;
+          //float scale = 1.0f / awayFromSheep.magnitude;
+          //awayFromSheep.Normalize();
+          //awayFromSheep *= scale;
+          steering += flee(sheepProjLoc);
         }
       }
     }
@@ -346,11 +346,11 @@ public abstract class BaseAgent : MonoBehaviour {
         Vector2 betweenClosest = projectedLoc - wolfProjLoc;
         if (betweenClosest.magnitude < 0.9) {
           // Scale force with the inverse of the distance
-          Vector2 awayFromWolf = (Vector2)transform.position - wolfProjLoc;
-          float scale = 1.0f / awayFromWolf.magnitude;
-          awayFromWolf.Normalize();
-          awayFromWolf *= scale;
-          steering += awayFromWolf;
+          //Vector2 awayFromWolf = (Vector2)transform.position - wolfProjLoc;
+          //float scale = 1.0f / awayFromWolf.magnitude;
+          //awayFromWolf.Normalize();
+          //awayFromWolf *= scale;
+          steering += flee(wolfProjLoc);
         }
       }
     }
