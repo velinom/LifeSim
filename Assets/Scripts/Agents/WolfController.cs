@@ -79,9 +79,9 @@ public class WolfController : BaseAgent {
 
     // Setup the hunt action
     Dictionary<InsistanceType, float> huntEffects = new Dictionary<InsistanceType, float>();
-    huntEffects.Add(InsistanceType.Food, -5);
-    huntEffects.Add(InsistanceType.Sleep, 3);
-    Action hunt = new Action(huntEffects, 25, "Hunt");
+    huntEffects.Add(InsistanceType.Food, -7);
+    huntEffects.Add(InsistanceType.Sleep, 2);
+    Action hunt = new Action(huntEffects, 15, "Hunt");
     this.actions.Add(hunt);
 
     // Setup the seek water action
@@ -174,37 +174,21 @@ public class WolfController : BaseAgent {
   private Vector2 hunt() {
     Vector2 goalSteering = new Vector2(-1, -1);
 
-    // If we've seen the bush and stored its location, just arrive at the bush
-    // (If we don't have a target to arrive at the vector is (-1, -1))
-    if (this.target.x >= 0 && this.target.y >= 0) {
-      goalSteering = arriveAt(
-        new Vector2(this.target.x * CELL_SIZE, this.target.y * CELL_SIZE),
-        new Vector2(currentCell.x * CELL_SIZE, currentCell.y * CELL_SIZE),
-        velocity, SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
-      
-      // If we have arrived at the bush, the sheep should eat
-      if (this.target.x == this.currentCell.x && this.target.y == this.currentCell.y) {
-        this.goal.apply(this.insistance);
-        this.goal = null;
-        this.target = new Vector2(-1, -1);
+    // Preform a sphere-cast and determine if there is a sheep within a radius of the 
+    // wolf (Represents the wolf seeing a sheep)
+    Collider2D[] hitColliders = Physics2D.OverlapCircleAll(this.transform.position, 240f);
+    int i = 0;
+    while (i < hitColliders.Length) {
+      Collider2D hitCollider = hitColliders[i];
+      if (hitCollider.tag == "Sheep") {
+        // Pursue the sheep
       }
-    } else {
-      // If we haven't seen a bush yet, check if we see one
-      // Check if within 3 blocks of a bush (represents the sheep seeing the bush and going)
-      Vector2 closeBush = getCloseFood(BoardManager.Food.Bush, 3, currentCell,
-                                       GameManager.instance.getFoodArray());
-      if (closeBush.x >= 0 && closeBush.y >= 0) {
-        this.target = closeBush;
-        goalSteering = arriveAt(
-          new Vector2(closeBush.x * CELL_SIZE, closeBush.y * CELL_SIZE),
-          new Vector2(currentCell.x * CELL_SIZE, currentCell.y * CELL_SIZE),
-          velocity, SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
-      } else {
-        // If we still can't see a bush, just follow the smell
-        goalSteering = this.getDirectionOfSmell(SmellType.GroundFood,
-          currentCell, GameManager.instance.getSmellArray()) * MAX_ACCEL;
-      }
+      i++;
     }
+
+    // If we still can't see a sheep, just follow the smell
+    goalSteering = this.getDirectionOfSmell(SmellType.MeatFood,
+      currentCell, GameManager.instance.getSmellArray()) * MAX_ACCEL;
 
     return goalSteering;
   }
