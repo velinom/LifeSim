@@ -160,6 +160,7 @@ public class WolfController : BaseAgent {
     // use distnace at closest approach to avoid collisions
     Vector2 avoidCollisionSteering = calculateCollisionAvoidance();
 
+    // If we don't need to avoid anything, just steer
     if (avoidWallsSteering.magnitude < 0.001 && avoidCollisionSteering.magnitude < 0.001) {
       return mainGoalSteering;
     }
@@ -186,9 +187,9 @@ public class WolfController : BaseAgent {
         if (distanceTo < ARRIVE_RADIUS) {
           Debug.Log("Wolf killed a sheep");
           Destroy(hitCollider.gameObject);
+          this.goal.apply(this.insistance);
           this.goal = null;
           this.target = new Vector2(-1, -1);
-
           return new Vector2(0, 0);
         }
 

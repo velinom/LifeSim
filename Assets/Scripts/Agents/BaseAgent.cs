@@ -242,8 +242,7 @@ public abstract class BaseAgent : MonoBehaviour {
         // Get a point normal to the wall at the point the colider hit.
         Vector2 normal = hit.normal.normalized;
         Vector2 seekPoint = hit.point + hit.normal * 1.8f;
-        Vector2 curLoc = new Vector2(currentCell.x * CELL_SIZE, currentCell.y * CELL_SIZE);
-        return arriveAt(seekPoint, curLoc, this.velocity, SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
+        return seek(seekPoint);
       }
     }
     // Preform the side whisker ray-casts
@@ -255,8 +254,7 @@ public abstract class BaseAgent : MonoBehaviour {
         // Get a point normal to the wall at the point the colider hit.
         Vector2 normal = lSideHit.normal.normalized;
         Vector2 seekPoint = lSideHit.point + normal * 1.2f;
-        Vector2 curLoc = new Vector2(currentCell.x * CELL_SIZE, currentCell.y * CELL_SIZE);
-        return arriveAt(seekPoint, curLoc, this.velocity, SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
+        return seek(seekPoint);
       }
     }
     Vector3 rightDirection = Quaternion.AngleAxis(40, transform.forward) * transform.right;
@@ -268,8 +266,7 @@ public abstract class BaseAgent : MonoBehaviour {
         // Get a point normal to the wall at the point the colider hit.
         Vector2 normal = rSideHit.normal.normalized;
         Vector2 seekPoint = rSideHit.point + normal * 0.8f;
-        Vector2 curLoc = new Vector2(currentCell.x * CELL_SIZE, currentCell.y * CELL_SIZE);
-        return arriveAt(seekPoint, curLoc, this.velocity, SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
+        return seek(seekPoint);
       }
     }
 
