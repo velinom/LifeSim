@@ -27,15 +27,15 @@ public class WolfController : BaseAgent {
   void Start() {
     // Setup the movement consts for the wolf
     // The max speed / accel (Force) for this wolf
-    MAX_SPEED = 2.8f;
-    MAX_ACCEL = 5;
-    MAX_ROTATION = 179;
+    MAX_SPEED = 2.2f;
+    MAX_ACCEL = 1f;
+    MAX_ROTATION = 240;
     MAX_ANGULAR_ACC = 30;
     // The radii for the arrive-at behavior
     ARRIVE_RADIUS = 0.5f;
     SLOW_RADIUS = 3;
     ROTATE_ARRIVE_RAD = 5;
-    ROTATE_SLOW_RAD = 50;
+    ROTATE_SLOW_RAD = 70;
 
     // Get the reference to the sleep particles
     this.sleepParticles = GetComponent<ParticleSystem>();
@@ -206,39 +206,8 @@ public class WolfController : BaseAgent {
     return goalSteering;
   }
 
-  // Calculate rotation, Rotatoin is always in the direction of the 
-  // current velocity.
-  private float calculateRotation() {
-    float targetOrientation = Mathf.Rad2Deg * Mathf.Atan2(velocity.y, velocity.x);
-    
-    // The target rotation depends on the radii for "arive" and "slow"
-    float curOrientation = transform.eulerAngles.z;
-    if (curOrientation > 180) curOrientation -= 360;
-    float targetRotation = targetOrientation - curOrientation;
-    if (Mathf.Abs(targetRotation) < ROTATE_ARRIVE_RAD) {
-      targetRotation = 0;
-    } else if (Mathf.Abs(targetRotation) < ROTATE_SLOW_RAD) {
-      targetRotation = MAX_ROTATION * targetRotation / ROTATE_ARRIVE_RAD;
-    } else {
-      targetRotation = targetRotation > 0 ? MAX_ROTATION : -MAX_ROTATION;
-    }
-
-    // Clamp target rotation for better behavior
-    if (targetRotation > 180) targetRotation -= 180;
-    if (targetRotation < -180) targetRotation += 360;
-
-    // If the sheep is stopped, make it stop rotating
-    if (velocity.magnitude < 0.05) {
-      targetRotation = -this.rotation;
-    }
-    float angSteering = targetRotation - this.rotation;
-    if (angSteering > 180) angSteering -= 360;
-    if (angSteering < -180) angSteering += 360;
-    return angSteering;
-  }
-
-  // Preform an update on the sheep based on the linear acceleration and rotation.
-  // Then move the sheep based on the new velocity and orientatoin.
+  // Preform an update on the wolf based on the linear acceleration and rotation.
+  // Then move the wolf based on the new velocity and orientation.
   private void applySteering(Vector2 linearSteering, float angularSteering) {
     // Begin by clamping the linear / angular acceleration
     if (linearSteering.magnitude > MAX_ACCEL) {
@@ -261,10 +230,10 @@ public class WolfController : BaseAgent {
     if (Mathf.Abs(this.rotation) > MAX_ROTATION) {
       this.rotation = this.rotation > 0 ? MAX_ROTATION : - MAX_ROTATION;
     }
-    if (this.rotation > 180) this.rotation -= 360;
-    if (this.rotation < -180) this.rotation += 360;
+    //if (this.rotation > 180) this.rotation -= 360;
+    //if (this.rotation < -180) this.rotation += 360;
 
-    // Now apply the steering to the sheep
+    // Now apply the steering to the wolf
     this.transform.Translate(this.velocity * Time.deltaTime, Space.World);
     this.transform.Rotate(0, 0, this.rotation * Time.deltaTime);
   }

@@ -60,7 +60,6 @@ public class GameManager : MonoBehaviour {
 	// as the sheep move arround. Calling is setup in the Awake method to happen a fixed
 	// number of seconds
 	private void UpdateSheepSmell() {
-		Debug.Log("Game Manager updating sheep smells");
 		StartCoroutine(updateSheepSmellThreaded());
 	}
 
@@ -83,13 +82,13 @@ public class GameManager : MonoBehaviour {
 		// Now for every sheep, propogate its smell through the map
 		foreach (BaseAgent sheep in sheepCopy) {
 			yield return null;
+			if (sheep == null) continue;
 			Vector2 sheepCell = sheep.getCurrentCell();
 			List<BoardManager.TileType> impassable =  new List<BoardManager.TileType> {
 				BoardManager.TileType.High, BoardManager.TileType.Water
 			};
 			boardScript.propagateSmellFromRoot(sheepCell, SmellType.MeatFood, impassable);
 		}
-		Debug.Log("Finished propogating smells");
 	}
 
   // Initializes the game

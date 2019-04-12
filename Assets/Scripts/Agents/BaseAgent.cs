@@ -222,11 +222,39 @@ public abstract class BaseAgent : MonoBehaviour {
                     SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
   }
 
+  // Calculate rotation, Rotation is always in the direction of the 
+  // current velocity.
+  public float calculateRotation() {
+    float targetOrientation = Mathf.Rad2Deg * Mathf.Atan2(velocity.y, velocity.x);
+    
+    // The target rotation depends on the radii for "arive" and "slow"
+    float curOrientation = transform.eulerAngles.z;
+    //if (curOrientation > 180) curOrientation -= 360;
+    float targetRotation = targetOrientation - curOrientation;
+    while (targetRotation > 180) targetRotation -= 360;
+    while (targetRotation < -180) targetRotation += 360;
+
+    if (Mathf.Abs(targetRotation) < ROTATE_ARRIVE_RAD) {
+      targetRotation = 0;
+    } else if (Mathf.Abs(targetRotation) < ROTATE_SLOW_RAD) {
+      targetRotation = MAX_ROTATION * targetRotation / ROTATE_ARRIVE_RAD;
+    } else {
+      targetRotation = targetRotation > 0 ? MAX_ROTATION : -MAX_ROTATION;
+    }
+
+    // If the sheep is stopped, make it stop rotating
+    if (velocity.magnitude < 0.05) {
+      targetRotation = -this.rotation;
+    }
+    float angSteering = targetRotation - this.rotation;
+    return angSteering;
+  }
+
   // Return a steering vector to awoid any walls. Need to avoid High elevation and water.
   // Done by using short "whisker" ray-casts and moving to a spot normal to the wall
   // if the whiskers hit something. Use one long ray forward, and two shorter side rays.
-  private float MAIN_RAY_LENGTH = 2;
-  private float SIDE_RAY_LENGTH = 0.8f;
+  private float MAIN_RAY_LENGTH = 1.8f;
+  private float SIDE_RAY_LENGTH = 0.6f;
   public Vector2 calculateWallAvoidance() {
     // If we have a goal and it's seeking water, don't wall-avoid water
     bool shouldAvoidWater = true;
@@ -234,17 +262,9 @@ public abstract class BaseAgent : MonoBehaviour {
       shouldAvoidWater = this.goal.name != "Seek Water";
     }
 
-    // Preform the main whisker ray-cast
-    RaycastHit2D hit = Physics2D.Raycast(transform.position, transform.right, MAIN_RAY_LENGTH);
-    if (hit.collider != null) {
-      if ((hit.transform.tag == "Water" && shouldAvoidWater) || 
-           hit.transform.tag == "HighElevation") {
-        // Get a point normal to the wall at the point the colider hit.
-        Vector2 normal = hit.normal.normalized;
-        Vector2 seekPoint = hit.point + hit.normal * 1.8f;
-        return seek(seekPoint);
-      }
-    }
+    // The point that the agent will seek to avoid any close walls
+    Vector2 steering = new Vector2(0, 0);
+
     // Preform the side whisker ray-casts
     Vector3 leftDirection = Quaternion.AngleAxis(-40, transform.forward) * transform.right;
     RaycastHit2D lSideHit = Physics2D.Raycast(transform.position, leftDirection, SIDE_RAY_LENGTH);
@@ -254,23 +274,33 @@ public abstract class BaseAgent : MonoBehaviour {
         // Get a point normal to the wall at the point the colider hit.
         Vector2 normal = lSideHit.normal.normalized;
         Vector2 seekPoint = lSideHit.point + normal * 1.2f;
-        return seek(seekPoint);
+        steering += flee(lSideHit.point);
       }
     }
     Vector3 rightDirection = Quaternion.AngleAxis(40, transform.forward) * transform.right;
-    RaycastHit2D rSideHit = Physics2D.Raycast(
-      this.transform.position, rightDirection, SIDE_RAY_LENGTH);
+    RaycastHit2D rSideHit = Physics2D.Raycast(transform.position, rightDirection, SIDE_RAY_LENGTH);
     if (rSideHit.collider != null) {
       if ((rSideHit.transform.tag == "Water" && shouldAvoidWater) || 
            rSideHit.transform.tag == "HighElevation") {
         // Get a point normal to the wall at the point the colider hit.
         Vector2 normal = rSideHit.normal.normalized;
         Vector2 seekPoint = rSideHit.point + normal * 0.8f;
-        return seek(seekPoint);
+        steering += flee(rSideHit.point);
+      }
+    }
+    // Preform the main whisker ray-cast
+    RaycastHit2D hit = Physics2D.Raycast(transform.position, transform.right, MAIN_RAY_LENGTH);
+    if (hit.collider != null) {
+      if ((hit.transform.tag == "Water" && shouldAvoidWater) || 
+           hit.transform.tag == "HighElevation") {
+        // Get a point normal to the wall at the point the colider hit.
+        Vector2 normal = hit.normal.normalized;
+        Vector2 seekPoint = hit.point + hit.normal * 1.8f;
+        steering += flee(hit.point);
       }
     }
 
-    return new Vector2(0, 0);
+    return steering;
   }
 
   // Gets all the sheep and wolves within the fixed radius of the agent.
