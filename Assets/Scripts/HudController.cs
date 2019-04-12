@@ -49,16 +49,16 @@ public class HudController : MonoBehaviour {
 	public void Update() {
 		// Listen for clicks and preform an action
 		if (Input.GetMouseButtonDown(0)) {
-			if (this.mode == Mode.AddSheep) {
-				Vector3 v3 = Input.mousePosition;
- 				v3.z = 10.0f;
-			  v3 = Camera.main.ScreenToWorldPoint(v3);
-				GameManager.instance.spawnAnimalAtLocation("sheep", v3);
-			} else if (this.mode == Mode.AddWolf) {
-				Vector3 v3 = Input.mousePosition;
- 				v3.z = 10.0f;
-			  v3 = Camera.main.ScreenToWorldPoint(v3);
-				GameManager.instance.spawnAnimalAtLocation("wolf", v3);
+			Vector3 mousePos = Input.mousePosition;
+			mousePos.z = 10.0f;
+			// Make sure the user clicked outside of the HUD to spawn agents
+			if (mousePos.x < Screen.width - 250 || mousePos.y > 200) {
+				Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(mousePos);
+				if (this.mode == Mode.AddSheep) {
+					GameManager.instance.spawnAnimalAtLocation("sheep", mouseWorldPos);
+				} else if (this.mode == Mode.AddWolf) {
+					GameManager.instance.spawnAnimalAtLocation("wolf", mouseWorldPos);
+				}
 			}
 		}
 
