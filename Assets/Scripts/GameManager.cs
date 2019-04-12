@@ -77,7 +77,7 @@ public class GameManager : MonoBehaviour {
 		// Need to copy list of sheep so that new sheep aren't added in the middel of the co-routine
 		List<BaseAgent> sheepCopy = new List<BaseAgent>();
 		foreach (BaseAgent sheep in this.spawnedSheep) {
-			sheepCopy.Add(sheep);
+			if (sheep != null) sheepCopy.Add(sheep);
 		}
 
 		// Now for every sheep, propogate its smell through the map

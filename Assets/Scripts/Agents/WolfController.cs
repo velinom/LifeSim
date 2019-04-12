@@ -181,7 +181,19 @@ public class WolfController : BaseAgent {
     while (i < hitColliders.Length) {
       Collider2D hitCollider = hitColliders[i];
       if (hitCollider.tag == "Sheep") {
+        // If the wolf has reached a sheep
+        float distanceTo = (hitCollider.transform.position - this.transform.position).magnitude;
+        if (distanceTo < ARRIVE_RADIUS) {
+          Debug.Log("Wolf killed a sheep");
+          Destroy(hitCollider.gameObject);
+          this.goal = null;
+          this.target = new Vector2(-1, -1);
+
+          return new Vector2(0, 0);
+        }
+
         // Pursue the sheep
+        return seek(hitCollider.transform.position);
       }
       i++;
     }

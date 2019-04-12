@@ -285,6 +285,8 @@ public abstract class BaseAgent : MonoBehaviour {
 
     // Avoid sheep
     foreach (BaseAgent sheep in GameManager.instance.getSpawnedSheep()) {
+      if (sheep == null) break;
+
       Vector2 relativePosition = this.transform.position - sheep.transform.position;
       if (relativePosition.magnitude < COLLISION_AVOIDANCE_RAD) {
         // Determine the point of closest approach
@@ -399,6 +401,37 @@ public abstract class BaseAgent : MonoBehaviour {
 
     // If we didn't find any tiles of the given type, return "dummy" vector (-1, -1)
     return new Vector2(-1, -1);
+  }
+
+  // Calculates the acceleration to seek a given target with a given velocity
+  public Vector2 pursue(Vector2 targetLoc, Vector2 targetVel) {
+    // Determine the time to reach the target's current location
+    Vector2 targetDirection = (Vector2)this.transform.position - targetLoc;
+    float timeToTarget = targetDirection.magnitude / this.velocity.magnitude;
+
+    // Project the target forward by that ammount of time
+    Vector2 seekLocation = targetLoc + targetVel * timeToTarget;
+
+    // Move at max accel toward the seek location
+    return seek(seekLocation);
+  }
+
+  // Accelerate at max value in the direction of the target
+  public Vector2 seek(Vector2 target) {
+    Vector2 direction = target - (Vector2)this.transform.position;
+
+    // Scale the vector in direction to max-acceleration
+    direction.Normalize();
+    return direction * MAX_ACCEL;
+  }
+
+  // Accelerate at max value in the away from the target
+  public Vector2 flee(Vector2 target) {
+    Vector2 direction = target - (Vector2)this.transform.position;
+
+    // Scale the vector in direction to max-acceleration
+    direction.Normalize();
+    return direction * -MAX_ACCEL;
   }
 
   // Calculates the force needed to make the agent slowly arrive at the
