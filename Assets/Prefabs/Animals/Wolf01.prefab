@@ -38,7 +38,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1025498825796132}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 20.2, y: 19, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.22, y: 0.25, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -70,7 +70,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a9f4ffa07f241f44f90018e5c67dd68e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  CELL_SIZE: 1.2
   MAX_SPEED: 0
   MAX_ACCEL: 0
   MAX_ROTATION: 0
@@ -79,9 +78,6 @@ MonoBehaviour:
   SLOW_RADIUS: 0
   ROTATE_ARRIVE_RAD: 0
   ROTATE_SLOW_RAD: 0
-  velocity: {x: 0, y: 0}
-  rotation: 0
-  currentCell: {x: 0, y: 0}
   target: {x: 0, y: 0}
 --- !u!198 &198261139962192546
 ParticleSystem:

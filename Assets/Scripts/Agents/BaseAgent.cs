@@ -4,10 +4,10 @@ using UnityEngine;
 
 // Class with a bunch of utility methods that are the same / used acrossed several
 // differnet agents
-public abstract class BaseAgent : MonoBehaviour, ISmellFollower {
+public abstract class BaseAgent : MonoBehaviour, ISmellFollower, IWallAvoider {
 
   // Consts from the game manager
-  public float CELL_SIZE = GameManager.CELL_SIZE;
+  private float CELL_SIZE = GameManager.CELL_SIZE;
 
   // MOVEMENT CONSTANTS,
   // THESE NEED TO BE SET IN IMPLEMENTING CLASSES
@@ -22,11 +22,11 @@ public abstract class BaseAgent : MonoBehaviour, ISmellFollower {
   public float ROTATE_SLOW_RAD;
 
   // The velocity and rotation of the agent.
-  public Vector2 velocity;
-  public float rotation;
+  protected Vector2 velocity;
+  protected float rotation;
 
   // The cell that the agent is currently in
-  public Vector2 currentCell;
+  protected Vector2 currentCell;
 
   // The action that the agent is currently taking
   // Can breifly be null while the agent "Thinks" about
@@ -42,8 +42,15 @@ public abstract class BaseAgent : MonoBehaviour, ISmellFollower {
   // Is frequently null if the agent is wandering, sleeping, or following a smell
   public Vector2 target;
 
-  // Composition classes for each behavior that this agent implements
-  ISmellFollower smellFollower = new SmellFollower();
+  /*
+   * Composition classes for each behavior that this agent implements
+   * The agent delegates these behaviors out to the composition calsses.
+   * This section also includes parameters that these classes need
+   */
+  private ISmellFollower smellFollower = new SmellFollower();
+  private static float MAIN_RAY_LENGTH = 2;
+  private static float  SIDE_RAY_LENGTH = 0.6f;
+  private IWallAvoider wallAvoider = new WallAvoider(MAIN_RAY_LENGTH, SIDE_RAY_LENGTH);
 
   // Uses the transfrom of this GameObject to determine what cell the sheep is 
   // currently in.
@@ -253,59 +260,6 @@ public abstract class BaseAgent : MonoBehaviour, ISmellFollower {
     return angSteering;
   }
 
-  // Return a steering vector to awoid any walls. Need to avoid High elevation and water.
-  // Done by using short "whisker" ray-casts and moving to a spot normal to the wall
-  // if the whiskers hit something. Use one long ray forward, and two shorter side rays.
-  private float MAIN_RAY_LENGTH = 1.8f;
-  private float SIDE_RAY_LENGTH = 0.6f;
-  public Vector2 calculateWallAvoidance() {
-    // If we have a goal and it's seeking water, don't wall-avoid water
-    bool shouldAvoidWater = true;
-    if (this.goal != null) {
-      shouldAvoidWater = this.goal.name != "Seek Water";
-    }
-
-    // The point that the agent will seek to avoid any close walls
-    Vector2 steering = new Vector2(0, 0);
-
-    // Preform the side whisker ray-casts
-    Vector3 leftDirection = Quaternion.AngleAxis(-40, transform.forward) * transform.right;
-    RaycastHit2D lSideHit = Physics2D.Raycast(transform.position, leftDirection, SIDE_RAY_LENGTH);
-    if (lSideHit.collider != null) {
-      if ((lSideHit.transform.tag == "Water" && shouldAvoidWater) || 
-           lSideHit.transform.tag == "HighElevation") {
-        // Get a point normal to the wall at the point the colider hit.
-        Vector2 normal = lSideHit.normal.normalized;
-        Vector2 seekPoint = lSideHit.point + normal * 1.2f;
-        steering += flee(lSideHit.point);
-      }
-    }
-    Vector3 rightDirection = Quaternion.AngleAxis(40, transform.forward) * transform.right;
-    RaycastHit2D rSideHit = Physics2D.Raycast(transform.position, rightDirection, SIDE_RAY_LENGTH);
-    if (rSideHit.collider != null) {
-      if ((rSideHit.transform.tag == "Water" && shouldAvoidWater) || 
-           rSideHit.transform.tag == "HighElevation") {
-        // Get a point normal to the wall at the point the colider hit.
-        Vector2 normal = rSideHit.normal.normalized;
-        Vector2 seekPoint = rSideHit.point + normal * 0.8f;
-        steering += flee(rSideHit.point);
-      }
-    }
-    // Preform the main whisker ray-cast
-    RaycastHit2D hit = Physics2D.Raycast(transform.position, transform.right, MAIN_RAY_LENGTH);
-    if (hit.collider != null) {
-      if ((hit.transform.tag == "Water" && shouldAvoidWater) || 
-           hit.transform.tag == "HighElevation") {
-        // Get a point normal to the wall at the point the colider hit.
-        Vector2 normal = hit.normal.normalized;
-        Vector2 seekPoint = hit.point + hit.normal * 1.8f;
-        steering += flee(hit.point);
-      }
-    }
-
-    return steering;
-  }
-
   // Gets all the sheep and wolves within the fixed radius of the agent.
   // Calculate the point of closest approach for the agent and each sheep or wolf
   // If there will be a collision, get repelled from the point of collision
@@ -368,7 +322,7 @@ public abstract class BaseAgent : MonoBehaviour, ISmellFollower {
       insistance.insistances[type] += insistance.growthRates[type] * Time.deltaTime;
     }
   }
-  
+
   // Return the location of the first object of the given food type within
   // the given distance of the location. If none is found, return (-1, -1)
   public Vector2 getCloseFood(BoardManager.Food type, int distance,
@@ -471,7 +425,10 @@ public abstract class BaseAgent : MonoBehaviour, ISmellFollower {
    * implements.
    */
   public Vector2 directionOfSmell(Vector2 location, Smell[, ] smells, SmellType type) {
-    return this.smellFollower.directionOfSmell(location, smells, type);
+    return smellFollower.directionOfSmell(location, smells, type);
+  }
+  public Vector2 avoidWalls(List<string> wallTags, Transform transfrom, float accel) {
+    return wallAvoider.avoidWalls(wallTags, transform, accel);
   }
 
   // Used for displaying the info about this agent when it is clicked

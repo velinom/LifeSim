@@ -148,7 +148,9 @@ public class SheepController : BaseAgent {
     
     // Wall Avoidence:
     // Cast whisker rays in front of the sheep to determine if there is a wall there
-    Vector2 avoidWallsSteering = calculateWallAvoidance();
+    List<string> wallTags = new List<string> { "HighElevation" };
+    if (this.goal != null && this.goal.name != "Seek Water") wallTags.Add("Water");
+    Vector2 avoidWallsSteering = avoidWalls(wallTags, this.transform, MAX_ACCEL);
 
     // Collision Avoidence:
     // use distnace at closest approach to avoid collisions

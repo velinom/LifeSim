@@ -153,8 +153,11 @@ public class WolfController : BaseAgent {
     // Now that main steering has been calculated, get lower-level steerings 
     
     // Wall Avoidence:
-    // Cast a ray in front of the wolf to determine if there is a wall there
-    Vector2 avoidWallsSteering = calculateWallAvoidance();
+    // Cast rays in front of the wolf to determine if there is a wall there
+    // Only avoid water if not seeking water
+    List<string> wallTags = new List<string> { "HighElevation" };
+    if (this.goal != null && this.goal.name != "Seek Water") wallTags.Add("Water");
+    Vector2 avoidWallsSteering = avoidWalls(wallTags, this.transform, MAX_ACCEL);
 
     // Collision Avoidence:
     // use distnace at closest approach to avoid collisions
