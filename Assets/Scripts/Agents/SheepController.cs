@@ -22,16 +22,6 @@ public class SheepController : BaseAgent {
 
   // Setup this sheep by initializing fields
   void Start() {
-    // Set the movement consts for the BaseAgent class
-    MAX_SPEED = 2;
-    MAX_ACCEL = 1;
-    MAX_ROTATION = 210;
-    MAX_ANGULAR_ACC = 30;
-    ARRIVE_RADIUS = 0.5f;
-    SLOW_RADIUS = 3;
-    ROTATE_ARRIVE_RAD = 5;
-    ROTATE_SLOW_RAD = 70;
-
     // Get the reference to the sleep particles
     this.sleepParticles = GetComponent<ParticleSystem>();
 

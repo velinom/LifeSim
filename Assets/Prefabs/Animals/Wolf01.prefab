@@ -70,14 +70,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a9f4ffa07f241f44f90018e5c67dd68e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  MAX_SPEED: 0
-  MAX_ACCEL: 0
-  MAX_ROTATION: 0
-  MAX_ANGULAR_ACC: 0
-  ARRIVE_RADIUS: 0
-  SLOW_RADIUS: 0
-  ROTATE_ARRIVE_RAD: 0
-  ROTATE_SLOW_RAD: 0
+  MAX_SPEED: 2.2
+  MAX_ACCEL: 1
+  MAX_ROTATION: 240
+  MAX_ANGULAR_ACC: 30
+  ARRIVE_RADIUS: 0.5
+  SLOW_RADIUS: 3
+  ROTATE_ARRIVE_RAD: 5
+  ROTATE_SLOW_RAD: 70
   target: {x: 0, y: 0}
 --- !u!198 &198261139962192546
 ParticleSystem:

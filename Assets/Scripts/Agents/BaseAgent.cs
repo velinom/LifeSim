@@ -10,7 +10,7 @@ public abstract class BaseAgent : MonoBehaviour, ISmellFollower, IWallAvoider {
   private float CELL_SIZE = GameManager.CELL_SIZE;
 
   // MOVEMENT CONSTANTS,
-  // THESE NEED TO BE SET IN IMPLEMENTING CLASSES
+  // Should be passed in through unity to base classes
   public float MAX_SPEED;
   public float MAX_ACCEL;
   public float MAX_ROTATION;

@@ -25,18 +25,6 @@ public class WolfController : BaseAgent {
 
   // Setup this wolf by initializing fields
   void Start() {
-    // Setup the movement consts for the wolf
-    // The max speed / accel (Force) for this wolf
-    MAX_SPEED = 2.2f;
-    MAX_ACCEL = 1f;
-    MAX_ROTATION = 240;
-    MAX_ANGULAR_ACC = 30;
-    // The radii for the arrive-at behavior
-    ARRIVE_RADIUS = 0.5f;
-    SLOW_RADIUS = 3;
-    ROTATE_ARRIVE_RAD = 5;
-    ROTATE_SLOW_RAD = 70;
-
     // Get the reference to the sleep particles
     this.sleepParticles = GetComponent<ParticleSystem>();
 
