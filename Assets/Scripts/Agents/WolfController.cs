@@ -200,8 +200,8 @@ public class WolfController : BaseAgent {
     }
 
     // If we still can't see a sheep, just follow the smell
-    goalSteering = this.getDirectionOfSmell(SmellType.MeatFood,
-      currentCell, GameManager.instance.getSmellArray()) * MAX_ACCEL;
+    goalSteering = this.directionOfSmell(currentCell,
+      GameManager.instance.getSmellArray(), SmellType.MeatFood) * MAX_ACCEL;
 
     return goalSteering;
   }

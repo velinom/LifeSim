@@ -4,7 +4,7 @@ using UnityEngine;
 
 // Class with a bunch of utility methods that are the same / used acrossed several
 // differnet agents
-public abstract class BaseAgent : MonoBehaviour {
+public abstract class BaseAgent : MonoBehaviour, ISmellFollower {
 
   // Consts from the game manager
   public float CELL_SIZE = GameManager.CELL_SIZE;
@@ -41,6 +41,9 @@ public abstract class BaseAgent : MonoBehaviour {
   // happens once the agent is very close to and "sees" their goal.
   // Is frequently null if the agent is wandering, sleeping, or following a smell
   public Vector2 target;
+
+  // Composition classes for each behavior that this agent implements
+  ISmellFollower smellFollower = new SmellFollower();
 
   // Uses the transfrom of this GameObject to determine what cell the sheep is 
   // currently in.
@@ -114,8 +117,8 @@ public abstract class BaseAgent : MonoBehaviour {
           velocity, SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
       } else {
         // If we still can't see a bush, just follow the smell
-        goalSteering = this.getDirectionOfSmell(smellType, currentCell,
-          GameManager.instance.getSmellArray()) * MAX_ACCEL;
+        goalSteering = this.directionOfSmell(currentCell,
+          GameManager.instance.getSmellArray(), smellType) * MAX_ACCEL;
       }
     }
 
@@ -156,8 +159,8 @@ public abstract class BaseAgent : MonoBehaviour {
           velocity, SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
       } else {
         // If we still can't see a bush, just follow the smell
-        goalSteering = this.getDirectionOfSmell(SmellType.Water,
-          currentCell, GameManager.instance.getSmellArray()) * MAX_ACCEL;
+        goalSteering = directionOfSmell(currentCell,
+          GameManager.instance.getSmellArray(), smellType) * MAX_ACCEL;
       }
     }
 
@@ -365,32 +368,7 @@ public abstract class BaseAgent : MonoBehaviour {
       insistance.insistances[type] += insistance.growthRates[type] * Time.deltaTime;
     }
   }
-
-  // Assess the smell of the given type in the 3x3 area surounding the agent,
-  // Determine the direction that the smell is coming from and return a 2D 
-  // vector in that direction
-  public Vector2 getDirectionOfSmell(SmellType type, Vector2 currentCell, Smell[, ] smells) {
-    Vector2 smellDirection = new Vector2(0, 0);
-
-    // Loop over all the cells adjacent to the sheep and determine
-    // the direction that the smell is strongest
-    for (int xOffset = -1; xOffset < 2; xOffset++) {
-      for (int yOffset = -1; yOffset < 2; yOffset++) {
-        int curX = (int)currentCell.x + xOffset;
-        int curY = (int)currentCell.y + yOffset;
-        if (curX >= 0 && curX < GameManager.SIZE && curY >= 0 && curY < GameManager.SIZE) {
-          double curSmellVal = smells[curX, curY].getSmell(type);
-          Vector2 curSmellCell = new Vector2(curX, curY);
-          Vector2 curDirection = curSmellCell - currentCell;
-          smellDirection = smellDirection + (curDirection * (float)curSmellVal);
-        }
-      }
-    }
-    
-    smellDirection.Normalize();
-    return smellDirection;
-  }
-
+  
   // Return the location of the first object of the given food type within
   // the given distance of the location. If none is found, return (-1, -1)
   public Vector2 getCloseFood(BoardManager.Food type, int distance,
@@ -486,6 +464,14 @@ public abstract class BaseAgent : MonoBehaviour {
     // The target acceleration is the difference between the current velocity
     // and the target velocity
     return targetVelocity - currentVel;
+  }
+
+  /* 
+   * BEHAVIOR METHODS: The methods from the Behavior Interfeces that this agent
+   * implements.
+   */
+  public Vector2 directionOfSmell(Vector2 location, Smell[, ] smells, SmellType type) {
+    return this.smellFollower.directionOfSmell(location, smells, type);
   }
 
   // Used for displaying the info about this agent when it is clicked
