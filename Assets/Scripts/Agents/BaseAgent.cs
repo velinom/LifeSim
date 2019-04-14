@@ -209,6 +209,7 @@ public abstract class BaseAgent : MonoBehaviour,
 
     // Make sure the agent isn't moving
     rigidBody.angularVelocity = 0;
+    rigidBody.rotation = 0;
     return new Vector2(-rigidBody.velocity.x, -rigidBody.velocity.y);
   }
 
