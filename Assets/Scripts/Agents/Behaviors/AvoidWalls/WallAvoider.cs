@@ -6,11 +6,15 @@ public class WallAvoider : IWallAvoider {
   // The lengths for the two types of whiskers
   private float sideRayLength;
   private float mainRayLength;
+  private Transform transform;
+  private float maxAccel;
 
-  // Constructor to set the lengths for the whiskers
-  public WallAvoider(float mainLength, float sideLength) {
+  // Constructor to set the lengths for the whiskers, and the parameters needed to avoid walls
+  public WallAvoider(float mainLength, float sideLength, Transform trans, float maxAccel) {
     this.mainRayLength = mainLength;
     this.sideRayLength = sideLength;
+    this.transform = trans;
+    this.maxAccel = maxAccel;
   }
 
   // Preforms three ray-casts to detect walls, one long ray in the center with two shorter
@@ -18,7 +22,7 @@ public class WallAvoider : IWallAvoider {
   // NOTE: The lecture slides recommend seeking a point normal to the wall, however due 
   //       to all the sharp right angles in walls within the level I found this lead to 
   //       getting caught in a "corner trap". I found fleeing the points works much better.
-  public Vector2 avoidWalls(List<string> wallTags, Transform transform, float accel) {
+  public Vector2 avoidWalls(List<string> wallTags) {
     // The point that the agent will seek to avoid any close walls
     Vector2 steering = new Vector2(0, 0);
 
@@ -28,7 +32,7 @@ public class WallAvoider : IWallAvoider {
     if (lSideHit.collider != null) {
       if (wallTags.Contains(lSideHit.collider.tag)) {
         // Flee the point that was hit
-        steering += flee(lSideHit.point, transform, accel);
+        steering += flee(lSideHit.point, transform, maxAccel);
       }
     }
     Vector3 rightDirection = Quaternion.AngleAxis(40, transform.forward) * transform.right;
@@ -36,7 +40,7 @@ public class WallAvoider : IWallAvoider {
     if (rSideHit.collider != null) {
       if (wallTags.Contains(rSideHit.collider.tag)) {
         // flee from the point that was hit
-        steering += flee(rSideHit.point, transform, accel);
+        steering += flee(rSideHit.point, transform, maxAccel);
       }
     }
     // Preform the main whisker ray-cast
@@ -44,7 +48,7 @@ public class WallAvoider : IWallAvoider {
     if (hit.collider != null) {
       if (wallTags.Contains(hit.collider.tag)) {
         // flee the hit point
-        steering += flee(hit.point, transform, accel);
+        steering += flee(hit.point, transform, maxAccel);
       }
     }
 

@@ -56,7 +56,7 @@ public abstract class BaseAgent : MonoBehaviour,
 
   public void initialize() {
     this.smellFollower = new SmellFollower();
-    this.wallAvoider = new WallAvoider(MAIN_RAY_LENGTH, SIDE_RAY_LENGTH);
+    this.wallAvoider = new WallAvoider(MAIN_RAY_LENGTH, SIDE_RAY_LENGTH, transform, MAX_ACCEL);
     this.collisionAvoider = new CollisionAvoider(COLLISION_AVOIDANCE_RAD, transform, rigidBody, MAX_ACCEL);
   }
 
@@ -379,8 +379,8 @@ public abstract class BaseAgent : MonoBehaviour,
   public Vector2 directionOfSmell(Vector2 location, Smell[, ] smells, SmellType type) {
     return smellFollower.directionOfSmell(location, smells, type);
   }
-  public Vector2 avoidWalls(List<string> wallTags, Transform transfrom, float accel) {
-    return wallAvoider.avoidWalls(wallTags, transform, accel);
+  public Vector2 avoidWalls(List<string> wallTags) {
+    return wallAvoider.avoidWalls(wallTags);
   }
   public Vector2 avoidCollisions(List<string> toAvoid) {
     return collisionAvoider.avoidCollisions(toAvoid);

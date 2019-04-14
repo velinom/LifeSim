@@ -145,12 +145,12 @@ public class WolfController : BaseAgent {
     // Only avoid water if not seeking water
     List<string> wallTags = new List<string> { "HighElevation" };
     if (this.goal != null && this.goal.name != "Seek Water") wallTags.Add("Water");
-    Vector2 avoidWallsSteering = avoidWalls(wallTags, this.transform, MAX_ACCEL);
+    Vector2 avoidWallsSteering = avoidWalls(wallTags);
 
     // Collision Avoidence:
     // use distnace at closest approach to avoid collisions
-    List<string> toAvoid = new List<string> { "Sheep", "Wolf" };
-    Vector2 avoidCollisionSteering = avoidCollisions(toAvoid);
+    List<string> collisionTags = new List<string> { "Sheep", "Wolf" };
+    Vector2 avoidCollisionSteering = avoidCollisions(collisionTags);
 
     // If we don't need to avoid anything, just steer
     if (avoidWallsSteering.magnitude < 0.001 && avoidCollisionSteering.magnitude < 0.001) {
