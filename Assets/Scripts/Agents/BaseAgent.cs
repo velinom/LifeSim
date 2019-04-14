@@ -5,7 +5,7 @@ using UnityEngine;
 // Class with a bunch of utility methods that are the same / used acrossed several
 // differnet agents
 public abstract class BaseAgent : MonoBehaviour,
-                      ISmellFollower, IWallAvoider, ICollisionAvoider, IFleer {
+                      ISmellFollower, IWallAvoider, ICollisionAvoider, IFleer, IArriver {
 
   // Consts from the game manager
   private float CELL_SIZE = GameManager.CELL_SIZE;
@@ -16,9 +16,7 @@ public abstract class BaseAgent : MonoBehaviour,
   public float MAX_ACCEL;
   public float MAX_ROTATION;
   public float MAX_ANGULAR_ACC;
-  // The radii for the arrive-at behavior
-  public float ARRIVE_RADIUS;
-  public float SLOW_RADIUS;
+  
   public float ROTATE_ARRIVE_RAD;
   public float ROTATE_SLOW_RAD;
 
@@ -59,11 +57,16 @@ public abstract class BaseAgent : MonoBehaviour,
   public float FLEE_TAG_RAD;
   private IFleer fleer;
 
+  public float ARRIVE_RADIUS;
+  public float SLOW_RADIUS;
+  private IArriver arriver;
+
   public void initialize() {
     this.smellFollower = new SmellFollower();
     this.wallAvoider = new WallAvoider(MAIN_RAY_LENGTH, SIDE_RAY_LENGTH, transform, MAX_ACCEL);
     this.collisionAvoider = new CollisionAvoider(COLLISION_AVOIDANCE_RAD, transform, rigidBody, MAX_ACCEL);
     this.fleer = new Fleer(FLEE_TAG_RAD, transform, MAX_ACCEL);
+    this.arriver = new Arriver(ARRIVE_RADIUS, SLOW_RADIUS, MAX_SPEED, this.rigidBody);
   }
 
   // Uses the transfrom of this GameObject to determine what cell the sheep is 
@@ -115,10 +118,7 @@ public abstract class BaseAgent : MonoBehaviour,
     // If we've seen the food and stored its location, just arrive at the location
     // (If we don't have a target to arrive at the vector is (-1, -1))
     if (this.target.x >= 0 && this.target.y >= 0) {
-      goalSteering = arriveAt(
-        new Vector2(this.target.x * CELL_SIZE, this.target.y * CELL_SIZE),
-        new Vector2(currentCell.x * CELL_SIZE, currentCell.y * CELL_SIZE),
-        rigidBody.velocity, SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
+      goalSteering = arriveAt(new Vector2(this.target.x * CELL_SIZE, this.target.y * CELL_SIZE));
       
       // If we have arrived at the location, apply the current goal to the insistances
       if (this.target.x == this.currentCell.x && this.target.y == this.currentCell.y) {
@@ -132,10 +132,7 @@ public abstract class BaseAgent : MonoBehaviour,
       Vector2 closeBush = getCloseFood(foodType, 3, currentCell, GameManager.instance.getFoodArray());
       if (closeBush.x >= 0 && closeBush.y >= 0) {
         this.target = closeBush;
-        goalSteering = arriveAt(
-          new Vector2(closeBush.x * CELL_SIZE, closeBush.y * CELL_SIZE),
-          new Vector2(currentCell.x * CELL_SIZE, currentCell.y * CELL_SIZE),
-          rigidBody.velocity, SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
+        goalSteering = arriveAt(new Vector2(closeBush.x * CELL_SIZE, closeBush.y * CELL_SIZE));
       } else {
         // If we still can't see a bush, just follow the smell
         goalSteering = this.directionOfSmell(currentCell,
@@ -154,10 +151,7 @@ public abstract class BaseAgent : MonoBehaviour,
     // If we've seen the tile and stored its location, just arrive at the tile
     // (If we don't have a target to arrive at the vector is (-1, -1))
     if (this.target.x >= 0 && this.target.y >= 0) {
-      goalSteering = arriveAt(
-        new Vector2(this.target.x * CELL_SIZE, this.target.y * CELL_SIZE),
-        new Vector2(currentCell.x * CELL_SIZE, currentCell.y * CELL_SIZE),
-        rigidBody.velocity, SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
+      goalSteering = arriveAt(new Vector2(this.target.x * CELL_SIZE, this.target.y * CELL_SIZE));
       
       // If we have arrived at the target, the agent should execute the action
       BoardManager.TileType currentCellType =
@@ -174,10 +168,7 @@ public abstract class BaseAgent : MonoBehaviour,
       Vector2 closeTile = getCloseTile(tileType, 3, currentCell, GameManager.instance.getBoardArray());
       if (closeTile.x >= 0 && closeTile.y >= 0) {
         this.target = closeTile;
-        goalSteering = arriveAt(
-          new Vector2(closeTile.x * CELL_SIZE, closeTile.y * CELL_SIZE),
-          new Vector2(currentCell.x * CELL_SIZE, currentCell.y * CELL_SIZE),
-          rigidBody.velocity, SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
+        goalSteering = arriveAt(new Vector2(closeTile.x * CELL_SIZE, closeTile.y * CELL_SIZE));
       } else {
         // If we still can't see a bush, just follow the smell
         goalSteering = directionOfSmell(currentCell,
@@ -243,8 +234,7 @@ public abstract class BaseAgent : MonoBehaviour,
       this.wanderStartTime = -1;
     }
 
-    return arriveAt(pointOnCircle, this.transform.position, rigidBody.velocity,
-                    SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
+    return seek(pointOnCircle);
   }
 
   // Calculate rotation, Rotation is always in the direction of the 
@@ -343,33 +333,6 @@ public abstract class BaseAgent : MonoBehaviour,
     return direction * MAX_ACCEL;
   }
 
-  // Calculates the force needed to make the agent slowly arrive at the
-  // given location and gradualy come to a stop
-  public Vector2 arriveAt(Vector2 targetLoc, Vector2 currentLoc, Vector2 currentVel, 
-                          float slowRad, float targetRad, float maxSpeed) {
-    float distToTarget = (targetLoc - currentLoc).magnitude;
-
-    // Three distance cases from slow-radius and target-radius
-    // Compute the target velocity in each case
-    float targetSpeed;
-    if (distToTarget > slowRad) {
-      targetSpeed = maxSpeed;
-    } else if (distToTarget > targetRad) {
-      targetSpeed = (distToTarget / slowRad) * maxSpeed;
-    } else {
-      targetSpeed = 0;
-    }
-
-    // Get the target velocity including direction
-    Vector2 targetVelocity = (targetLoc - currentLoc);
-    targetVelocity.Normalize();
-    targetVelocity = targetVelocity * targetSpeed;
-
-    // The target acceleration is the difference between the current velocity
-    // and the target velocity
-    return targetVelocity - currentVel;
-  }
-
   /* 
    * BEHAVIOR METHODS: The methods from the Behavior Interfeces that this agent
    * implements.
@@ -388,6 +351,9 @@ public abstract class BaseAgent : MonoBehaviour,
   }
   public Vector2 fleeTags(List<string> fleeTags) {
     return fleer.fleeTags(fleeTags);
+  }
+  public Vector2 arriveAt(Vector2 point) {
+    return arriver.arriveAt(point);
   }
 
   // Used for displaying the info about this agent when it is clicked
