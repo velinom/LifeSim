@@ -4,8 +4,8 @@ using UnityEngine;
 
 // Class with a bunch of utility methods that are the same / used acrossed several
 // differnet agents
-public abstract class BaseAgent : MonoBehaviour,
-                      ISmellFollower, IWallAvoider, ICollisionAvoider, IFleer, IArriver {
+public abstract class BaseAgent : MonoBehaviour, ICollisionAvoider, IWallAvoider, ISmellFollower, 
+                                  IArriver, IFleer, ISeeker {
 
   // Consts from the game manager
   private float CELL_SIZE = GameManager.CELL_SIZE;
@@ -61,12 +61,15 @@ public abstract class BaseAgent : MonoBehaviour,
   public float SLOW_RADIUS;
   private IArriver arriver;
 
+  private ISeeker seeker;
+
   public void initialize() {
     this.smellFollower = new SmellFollower();
     this.wallAvoider = new WallAvoider(MAIN_RAY_LENGTH, SIDE_RAY_LENGTH, transform, MAX_ACCEL);
     this.collisionAvoider = new CollisionAvoider(COLLISION_AVOIDANCE_RAD, transform, rigidBody, MAX_ACCEL);
     this.fleer = new Fleer(FLEE_TAG_RAD, transform, MAX_ACCEL);
     this.arriver = new Arriver(ARRIVE_RADIUS, SLOW_RADIUS, MAX_SPEED, this.rigidBody);
+    this.seeker = new Seeker(MAX_ACCEL, transform);
   }
 
   // Uses the transfrom of this GameObject to determine what cell the sheep is 
@@ -324,15 +327,6 @@ public abstract class BaseAgent : MonoBehaviour,
     return seek(seekLocation);
   }
 
-  // Accelerate at max value in the direction of the target
-  public Vector2 seek(Vector2 target) {
-    Vector2 direction = target - (Vector2)this.transform.position;
-
-    // Scale the vector in direction to max-acceleration
-    direction.Normalize();
-    return direction * MAX_ACCEL;
-  }
-
   /* 
    * BEHAVIOR METHODS: The methods from the Behavior Interfeces that this agent
    * implements.
@@ -354,6 +348,9 @@ public abstract class BaseAgent : MonoBehaviour,
   }
   public Vector2 arriveAt(Vector2 point) {
     return arriver.arriveAt(point);
+  }
+  public Vector2 seek(Vector2 point) {
+    return seeker.seek(point);
   }
 
   // Used for displaying the info about this agent when it is clicked
