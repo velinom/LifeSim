@@ -25,11 +25,11 @@ public class WolfController : BaseAgent {
 
   // Setup this wolf by initializing fields
   void Start() {
-    // Get the reference to the sleep particles
+    // Get the references to the components we need to store
     this.sleepParticles = GetComponent<ParticleSystem>();
+    this.rigidBody = GetComponent<Rigidbody2D>();
 
     // Setup the movement fields
-    this.velocity = new Vector2(0, 0);
     this.rotation = 0;
 
     // Setup the insistance fields, growth rates, etc.
@@ -210,22 +210,20 @@ public class WolfController : BaseAgent {
     }
 
     // Update the velocities using the accelerations
-    this.velocity += linearSteering;
+    rigidBody.velocity += linearSteering;
+    
     this.rotation += angularSteering;
 
     // Clip the velocity/rotation if they are too high
-    if (this.velocity.magnitude > MAX_SPEED) {
-      this.velocity.Normalize();
-      this.velocity *= MAX_SPEED;
+    if (rigidBody.velocity.magnitude > MAX_SPEED) {
+      rigidBody.velocity = rigidBody.velocity.normalized;
+      rigidBody.velocity *= MAX_SPEED;
     }
     if (Mathf.Abs(this.rotation) > MAX_ROTATION) {
       this.rotation = this.rotation > 0 ? MAX_ROTATION : - MAX_ROTATION;
     }
-    //if (this.rotation > 180) this.rotation -= 360;
-    //if (this.rotation < -180) this.rotation += 360;
 
     // Now apply the steering to the wolf
-    this.transform.Translate(this.velocity * Time.deltaTime, Space.World);
     this.transform.Rotate(0, 0, this.rotation * Time.deltaTime);
   }
 }

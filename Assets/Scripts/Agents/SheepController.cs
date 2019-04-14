@@ -20,16 +20,13 @@ public class SheepController : BaseAgent {
   // List of possible actions that the sheep can take
   private List<Action> actions;
 
-  private Rigidbody2D rb2d;
-
   // Setup this sheep by initializing fields
   void Start() {
-    // Get the reference to the sleep particles
+    // Get the reference to the game components we need to store
     this.sleepParticles = GetComponent<ParticleSystem>();
-    this.rb2d = GetComponent<Rigidbody2D>();
+    this.rigidBody = GetComponent<Rigidbody2D>();
 
     // Setup the movement fields
-    this.velocity = new Vector2(0, 0);
     this.rotation = 0;
 
     // Setup the insistance fields, growth rates, etc.
@@ -97,7 +94,6 @@ public class SheepController : BaseAgent {
 	void Update () {
     // Update the current cell so that it is known the whole update
     this.currentCell = getCurrentCell();
-    Debug.Log(this.rb2d.velocity);
 
     // Determine the Goal or Action that the Sheep will take
     // This goal is set into the field giving the type of action
@@ -171,22 +167,19 @@ public class SheepController : BaseAgent {
     }
 
     // Update the velocities using the accelerations
-    this.velocity += linSteering;
+    rigidBody.velocity += linSteering;
     this.rotation += angSteering;
 
     // Clip the velocity/rotation if they are too high
-    if (this.velocity.magnitude > MAX_SPEED) {
-      this.velocity.Normalize();
-      this.velocity *= MAX_SPEED;
+    if (rigidBody.velocity.magnitude > MAX_SPEED) {
+      rigidBody.velocity = rigidBody.velocity.normalized;
+      rigidBody.velocity *= MAX_SPEED;
     }
     if (Mathf.Abs(this.rotation) > MAX_ROTATION) {
       this.rotation = this.rotation > 0 ? MAX_ROTATION : - MAX_ROTATION;
     }
-    //if (this.rotation > 180) this.rotation -= 360;
-    //if (this.rotation < -180) this.rotation += 360;
 
     // Now apply the steering to the sheep
-    this.transform.Translate(this.velocity * Time.deltaTime, Space.World);
     this.transform.Rotate(0, 0, this.rotation * Time.deltaTime);
   }
 }

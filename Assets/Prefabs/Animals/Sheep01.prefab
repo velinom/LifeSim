@@ -92,7 +92,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   MAX_SPEED: 2
-  MAX_ACCEL: 1
+  MAX_ACCEL: 0.3
   MAX_ROTATION: 210
   MAX_ANGULAR_ACC: 30
   ARRIVE_RADIUS: 0.5

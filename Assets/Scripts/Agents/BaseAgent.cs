@@ -21,8 +21,9 @@ public abstract class BaseAgent : MonoBehaviour, ISmellFollower, IWallAvoider {
   public float ROTATE_ARRIVE_RAD;
   public float ROTATE_SLOW_RAD;
 
-  // The velocity and rotation of the agent.
-  protected Vector2 velocity;
+  // Stores the velocity and rotation of the agent.
+  protected Rigidbody2D rigidBody;
+  //protected Vector2 velocity;
   protected float rotation;
 
   // The cell that the agent is currently in
@@ -104,7 +105,7 @@ public abstract class BaseAgent : MonoBehaviour, ISmellFollower, IWallAvoider {
       goalSteering = arriveAt(
         new Vector2(this.target.x * CELL_SIZE, this.target.y * CELL_SIZE),
         new Vector2(currentCell.x * CELL_SIZE, currentCell.y * CELL_SIZE),
-        velocity, SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
+        rigidBody.velocity, SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
       
       // If we have arrived at the location, apply the current goal to the insistances
       if (this.target.x == this.currentCell.x && this.target.y == this.currentCell.y) {
@@ -121,7 +122,7 @@ public abstract class BaseAgent : MonoBehaviour, ISmellFollower, IWallAvoider {
         goalSteering = arriveAt(
           new Vector2(closeBush.x * CELL_SIZE, closeBush.y * CELL_SIZE),
           new Vector2(currentCell.x * CELL_SIZE, currentCell.y * CELL_SIZE),
-          velocity, SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
+          rigidBody.velocity, SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
       } else {
         // If we still can't see a bush, just follow the smell
         goalSteering = this.directionOfSmell(currentCell,
@@ -143,7 +144,7 @@ public abstract class BaseAgent : MonoBehaviour, ISmellFollower, IWallAvoider {
       goalSteering = arriveAt(
         new Vector2(this.target.x * CELL_SIZE, this.target.y * CELL_SIZE),
         new Vector2(currentCell.x * CELL_SIZE, currentCell.y * CELL_SIZE),
-        velocity, SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
+        rigidBody.velocity, SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
       
       // If we have arrived at the target, the agent should execute the action
       BoardManager.TileType currentCellType =
@@ -163,7 +164,7 @@ public abstract class BaseAgent : MonoBehaviour, ISmellFollower, IWallAvoider {
         goalSteering = arriveAt(
           new Vector2(closeTile.x * CELL_SIZE, closeTile.y * CELL_SIZE),
           new Vector2(currentCell.x * CELL_SIZE, currentCell.y * CELL_SIZE),
-          velocity, SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
+          rigidBody.velocity, SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
       } else {
         // If we still can't see a bush, just follow the smell
         goalSteering = directionOfSmell(currentCell,
@@ -195,7 +196,7 @@ public abstract class BaseAgent : MonoBehaviour, ISmellFollower, IWallAvoider {
 
     // Make sure the agent isn't moving
     this.rotation = 0;
-    return new Vector2(-this.velocity.x, -this.velocity.y);
+    return new Vector2(-rigidBody.velocity.x, -rigidBody.velocity.y);
   }
 
   // ACTION METHOD make the agent wander using a seek behavior toward a point.
@@ -228,14 +229,14 @@ public abstract class BaseAgent : MonoBehaviour, ISmellFollower, IWallAvoider {
       this.wanderStartTime = -1;
     }
 
-    return arriveAt(pointOnCircle, this.transform.position, this.velocity,
+    return arriveAt(pointOnCircle, this.transform.position, rigidBody.velocity,
                     SLOW_RADIUS, ARRIVE_RADIUS, MAX_SPEED);
   }
 
   // Calculate rotation, Rotation is always in the direction of the 
   // current velocity.
   public float calculateRotation() {
-    float targetOrientation = Mathf.Rad2Deg * Mathf.Atan2(velocity.y, velocity.x);
+    float targetOrientation = Mathf.Rad2Deg * Mathf.Atan2(rigidBody.velocity.y, rigidBody.velocity.x);
     
     // The target rotation depends on the radii for "arive" and "slow"
     float curOrientation = transform.eulerAngles.z;
@@ -252,8 +253,8 @@ public abstract class BaseAgent : MonoBehaviour, ISmellFollower, IWallAvoider {
       targetRotation = targetRotation > 0 ? MAX_ROTATION : -MAX_ROTATION;
     }
 
-    // If the sheep is stopped, make it stop rotating
-    if (velocity.magnitude < 0.05) {
+    // If the agent is stopped, make it stop rotating
+    if (rigidBody.velocity.magnitude < 0.05) {
       targetRotation = -this.rotation;
     }
     float angSteering = targetRotation - this.rotation;
@@ -274,11 +275,11 @@ public abstract class BaseAgent : MonoBehaviour, ISmellFollower, IWallAvoider {
       Vector2 relativePosition = this.transform.position - sheep.transform.position;
       if (relativePosition.magnitude < COLLISION_AVOIDANCE_RAD) {
         // Determine the point of closest approach
-        Vector2 relativeVelocity = this.velocity - sheep.velocity;
+        Vector2 relativeVelocity = rigidBody.velocity - sheep.rigidBody.velocity;
         float timeToClosest = Vector2.Dot(relativePosition, relativeVelocity) / 
           (relativeVelocity.magnitude * relativeVelocity.magnitude);
-        Vector2 projectedLoc = (Vector2)transform.position + (this.velocity * timeToClosest);
-        Vector2 sheepProjLoc = (Vector2) sheep.transform.position + (sheep.velocity * timeToClosest);
+        Vector2 projectedLoc = (Vector2)transform.position + (rigidBody.velocity * timeToClosest);
+        Vector2 sheepProjLoc = (Vector2) sheep.transform.position + (sheep.rigidBody.velocity * timeToClosest);
         Vector2 betweenClosest = projectedLoc - sheepProjLoc;
         if (betweenClosest.magnitude < 0.9) {
           // Scale force with the inverse of the distance
@@ -295,11 +296,11 @@ public abstract class BaseAgent : MonoBehaviour, ISmellFollower, IWallAvoider {
       Vector2 relativePosition = this.transform.position - wolf.transform.position;
       if (relativePosition.magnitude < COLLISION_AVOIDANCE_RAD) {
         // Determine the point of closest approach
-        Vector2 relativeVelocity = this.velocity - wolf.velocity;
+        Vector2 relativeVelocity = rigidBody.velocity - wolf.rigidBody.velocity;
         float timeToClosest = Vector2.Dot(relativePosition, relativeVelocity) / 
           (relativeVelocity.magnitude * relativeVelocity.magnitude);
-        Vector2 projectedLoc = (Vector2)transform.position + (this.velocity * timeToClosest);
-        Vector2 wolfProjLoc = (Vector2) wolf.transform.position + (wolf.velocity * timeToClosest);
+        Vector2 projectedLoc = (Vector2)transform.position + (rigidBody.velocity * timeToClosest);
+        Vector2 wolfProjLoc = (Vector2) wolf.transform.position + (wolf.rigidBody.velocity * timeToClosest);
         Vector2 betweenClosest = projectedLoc - wolfProjLoc;
         if (betweenClosest.magnitude < 0.9) {
           // Scale force with the inverse of the distance
@@ -366,7 +367,7 @@ public abstract class BaseAgent : MonoBehaviour, ISmellFollower, IWallAvoider {
   public Vector2 pursue(Vector2 targetLoc, Vector2 targetVel) {
     // Determine the time to reach the target's current location
     Vector2 targetDirection = (Vector2)this.transform.position - targetLoc;
-    float timeToTarget = targetDirection.magnitude / this.velocity.magnitude;
+    float timeToTarget = targetDirection.magnitude / rigidBody.velocity.magnitude;
 
     // Project the target forward by that ammount of time
     Vector2 seekLocation = targetLoc + targetVel * timeToTarget;
