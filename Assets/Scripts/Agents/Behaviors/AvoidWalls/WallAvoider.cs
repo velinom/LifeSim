@@ -44,7 +44,6 @@ public class WallAvoider : IWallAvoider {
     if (hit.collider != null) {
       if (wallTags.Contains(hit.collider.tag)) {
         // flee the hit point
-        Debug.Log("Main hit");
         steering += flee(hit.point, transform, accel);
       }
     }

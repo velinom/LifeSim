@@ -21,10 +21,8 @@ public abstract class BaseAgent : MonoBehaviour, ISmellFollower, IWallAvoider {
   public float ROTATE_ARRIVE_RAD;
   public float ROTATE_SLOW_RAD;
 
-  // Stores the velocity and rotation of the agent.
+  // Stores the velocity and rotation of the agent (in rigidbody2D).
   protected Rigidbody2D rigidBody;
-  //protected Vector2 velocity;
-  protected float rotation;
 
   // The cell that the agent is currently in
   protected Vector2 currentCell;
@@ -195,7 +193,7 @@ public abstract class BaseAgent : MonoBehaviour, ISmellFollower, IWallAvoider {
     }
 
     // Make sure the agent isn't moving
-    this.rotation = 0;
+    rigidBody.angularVelocity = 0;
     return new Vector2(-rigidBody.velocity.x, -rigidBody.velocity.y);
   }
 
@@ -240,7 +238,6 @@ public abstract class BaseAgent : MonoBehaviour, ISmellFollower, IWallAvoider {
     
     // The target rotation depends on the radii for "arive" and "slow"
     float curOrientation = transform.eulerAngles.z;
-    //if (curOrientation > 180) curOrientation -= 360;
     float targetRotation = targetOrientation - curOrientation;
     while (targetRotation > 180) targetRotation -= 360;
     while (targetRotation < -180) targetRotation += 360;
@@ -254,10 +251,10 @@ public abstract class BaseAgent : MonoBehaviour, ISmellFollower, IWallAvoider {
     }
 
     // If the agent is stopped, make it stop rotating
-    if (rigidBody.velocity.magnitude < 0.05) {
-      targetRotation = -this.rotation;
+    if (rigidBody.velocity.magnitude < 0.01) {
+      targetRotation = -rigidBody.angularVelocity;
     }
-    float angSteering = targetRotation - this.rotation;
+    float angSteering = targetRotation - rigidBody.angularVelocity;
     return angSteering;
   }
 

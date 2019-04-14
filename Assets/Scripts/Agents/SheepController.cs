@@ -26,9 +26,6 @@ public class SheepController : BaseAgent {
     this.sleepParticles = GetComponent<ParticleSystem>();
     this.rigidBody = GetComponent<Rigidbody2D>();
 
-    // Setup the movement fields
-    this.rotation = 0;
-
     // Setup the insistance fields, growth rates, etc.
     setupInsistance();
 
@@ -168,18 +165,15 @@ public class SheepController : BaseAgent {
 
     // Update the velocities using the accelerations
     rigidBody.velocity += linSteering;
-    this.rotation += angSteering;
+    rigidBody.angularVelocity += angSteering;
 
     // Clip the velocity/rotation if they are too high
     if (rigidBody.velocity.magnitude > MAX_SPEED) {
       rigidBody.velocity = rigidBody.velocity.normalized;
       rigidBody.velocity *= MAX_SPEED;
     }
-    if (Mathf.Abs(this.rotation) > MAX_ROTATION) {
-      this.rotation = this.rotation > 0 ? MAX_ROTATION : - MAX_ROTATION;
+    if (Mathf.Abs(rigidBody.angularVelocity) > MAX_ROTATION) {
+      rigidBody.angularVelocity = rigidBody.angularVelocity > 0 ? MAX_ROTATION : - MAX_ROTATION;
     }
-
-    // Now apply the steering to the sheep
-    this.transform.Rotate(0, 0, this.rotation * Time.deltaTime);
   }
 }
