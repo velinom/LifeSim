@@ -20,7 +20,6 @@ public class WallAvoider : IWallAvoider {
   //       getting caught in a "corner trap". I found fleeing the points works much better.
   public Vector2 avoidWalls(List<string> wallTags, Transform transform, float accel) {
     // The point that the agent will seek to avoid any close walls
-    Debug.Log(this.mainRayLength);
     Vector2 steering = new Vector2(0, 0);
 
     // Preform the side whisker ray-casts

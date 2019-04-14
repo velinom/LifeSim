@@ -20,10 +20,13 @@ public class SheepController : BaseAgent {
   // List of possible actions that the sheep can take
   private List<Action> actions;
 
+  private Rigidbody2D rb2d;
+
   // Setup this sheep by initializing fields
   void Start() {
     // Get the reference to the sleep particles
     this.sleepParticles = GetComponent<ParticleSystem>();
+    this.rb2d = GetComponent<Rigidbody2D>();
 
     // Setup the movement fields
     this.velocity = new Vector2(0, 0);
@@ -94,6 +97,7 @@ public class SheepController : BaseAgent {
 	void Update () {
     // Update the current cell so that it is known the whole update
     this.currentCell = getCurrentCell();
+    Debug.Log(this.rb2d.velocity);
 
     // Determine the Goal or Action that the Sheep will take
     // This goal is set into the field giving the type of action
