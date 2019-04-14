@@ -35,6 +35,9 @@ public class WolfController : BaseAgent {
     // Setup the actions that the wolf can take
     setupActions();
 
+    // Initialize base agent
+    initialize();
+
     // Set arriving at to a dummy vector of (-1, -1)
     this.target = new Vector2(-1, -1);
   }
@@ -146,7 +149,8 @@ public class WolfController : BaseAgent {
 
     // Collision Avoidence:
     // use distnace at closest approach to avoid collisions
-    Vector2 avoidCollisionSteering = calculateCollisionAvoidance();
+    List<string> toAvoid = new List<string> { "Sheep", "Wolf" };
+    Vector2 avoidCollisionSteering = avoidCollisions(toAvoid);
 
     // If we don't need to avoid anything, just steer
     if (avoidWallsSteering.magnitude < 0.001 && avoidCollisionSteering.magnitude < 0.001) {

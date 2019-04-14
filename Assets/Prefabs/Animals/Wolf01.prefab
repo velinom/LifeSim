@@ -100,6 +100,9 @@ MonoBehaviour:
   ROTATE_ARRIVE_RAD: 5
   ROTATE_SLOW_RAD: 70
   target: {x: 0, y: 0}
+  MAIN_RAY_LENGTH: 2
+  SIDE_RAY_LENGTH: 0.6
+  COLLISION_AVOIDANCE_RAD: 4
 --- !u!198 &198261139962192546
 ParticleSystem:
   m_ObjectHideFlags: 1

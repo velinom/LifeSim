@@ -32,6 +32,9 @@ public class SheepController : BaseAgent {
     // Setup the actions that the sheep can take
     setupActions();
 
+    // Initialize everthing from BaseAgent
+    initialize();
+
     // Set arriving at to a dummy vector of (-1, -1)
     this.target = new Vector2(-1, -1);
   }
@@ -141,7 +144,8 @@ public class SheepController : BaseAgent {
 
     // Collision Avoidence:
     // use distnace at closest approach to avoid collisions
-    Vector2 avoidCollisionSteering = calculateCollisionAvoidance();
+    List<string> toAvoid = new List<string> { "Wolf", "Sheep" };
+    Vector2 avoidCollisionSteering = avoidCollisions(toAvoid);
 
     if (avoidWallsSteering.magnitude < 0.001 && avoidCollisionSteering.magnitude < 0.001) {
       return mainGoalSteering;

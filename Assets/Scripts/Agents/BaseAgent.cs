@@ -4,7 +4,8 @@ using UnityEngine;
 
 // Class with a bunch of utility methods that are the same / used acrossed several
 // differnet agents
-public abstract class BaseAgent : MonoBehaviour, ISmellFollower, IWallAvoider {
+public abstract class BaseAgent : MonoBehaviour,
+                      ISmellFollower, IWallAvoider, ICollisionAvoider {
 
   // Consts from the game manager
   private float CELL_SIZE = GameManager.CELL_SIZE;
@@ -46,10 +47,18 @@ public abstract class BaseAgent : MonoBehaviour, ISmellFollower, IWallAvoider {
    * The agent delegates these behaviors out to the composition calsses.
    * This section also includes parameters that these classes need
    */
-  private ISmellFollower smellFollower = new SmellFollower();
-  private static float MAIN_RAY_LENGTH = 2;
-  private static float  SIDE_RAY_LENGTH = 0.6f;
-  private IWallAvoider wallAvoider = new WallAvoider(MAIN_RAY_LENGTH, SIDE_RAY_LENGTH);
+  private ISmellFollower smellFollower;
+  public float MAIN_RAY_LENGTH;
+  public float  SIDE_RAY_LENGTH;
+  private IWallAvoider wallAvoider;
+  public float COLLISION_AVOIDANCE_RAD;
+  private ICollisionAvoider collisionAvoider;
+
+  public void initialize() {
+    this.smellFollower = new SmellFollower();
+    this.wallAvoider = new WallAvoider(MAIN_RAY_LENGTH, SIDE_RAY_LENGTH);
+    this.collisionAvoider = new CollisionAvoider(COLLISION_AVOIDANCE_RAD, transform, rigidBody, MAX_ACCEL);
+  }
 
   // Uses the transfrom of this GameObject to determine what cell the sheep is 
   // currently in.
@@ -258,61 +267,6 @@ public abstract class BaseAgent : MonoBehaviour, ISmellFollower, IWallAvoider {
     return angSteering;
   }
 
-  // Gets all the sheep and wolves within the fixed radius of the agent.
-  // Calculate the point of closest approach for the agent and each sheep or wolf
-  // If there will be a collision, get repelled from the point of collision
-  private const float COLLISION_AVOIDANCE_RAD = 4;
-  public Vector2 calculateCollisionAvoidance() {
-    Vector2 steering = new Vector2(0, 0);
-
-    // Avoid sheep
-    foreach (BaseAgent sheep in GameManager.instance.getSpawnedSheep()) {
-      if (sheep == null) continue;
-
-      Vector2 relativePosition = this.transform.position - sheep.transform.position;
-      if (relativePosition.magnitude < COLLISION_AVOIDANCE_RAD) {
-        // Determine the point of closest approach
-        Vector2 relativeVelocity = rigidBody.velocity - sheep.rigidBody.velocity;
-        float timeToClosest = Vector2.Dot(relativePosition, relativeVelocity) / 
-          (relativeVelocity.magnitude * relativeVelocity.magnitude);
-        Vector2 projectedLoc = (Vector2)transform.position + (rigidBody.velocity * timeToClosest);
-        Vector2 sheepProjLoc = (Vector2) sheep.transform.position + (sheep.rigidBody.velocity * timeToClosest);
-        Vector2 betweenClosest = projectedLoc - sheepProjLoc;
-        if (betweenClosest.magnitude < 0.9) {
-          // Scale force with the inverse of the distance
-          //Vector2 awayFromSheep = (Vector2)transform.position - sheepProjLoc;
-          //float scale = 1.0f / awayFromSheep.magnitude;
-          //awayFromSheep.Normalize();
-          //awayFromSheep *= scale;
-          steering += flee(sheepProjLoc);
-        }
-      }
-    }
-    // Avoid wolves
-    foreach (BaseAgent wolf in GameManager.instance.getSpawnedWolves()) {
-      Vector2 relativePosition = this.transform.position - wolf.transform.position;
-      if (relativePosition.magnitude < COLLISION_AVOIDANCE_RAD) {
-        // Determine the point of closest approach
-        Vector2 relativeVelocity = rigidBody.velocity - wolf.rigidBody.velocity;
-        float timeToClosest = Vector2.Dot(relativePosition, relativeVelocity) / 
-          (relativeVelocity.magnitude * relativeVelocity.magnitude);
-        Vector2 projectedLoc = (Vector2)transform.position + (rigidBody.velocity * timeToClosest);
-        Vector2 wolfProjLoc = (Vector2) wolf.transform.position + (wolf.rigidBody.velocity * timeToClosest);
-        Vector2 betweenClosest = projectedLoc - wolfProjLoc;
-        if (betweenClosest.magnitude < 0.9) {
-          // Scale force with the inverse of the distance
-          //Vector2 awayFromWolf = (Vector2)transform.position - wolfProjLoc;
-          //float scale = 1.0f / awayFromWolf.magnitude;
-          //awayFromWolf.Normalize();
-          //awayFromWolf *= scale;
-          steering += flee(wolfProjLoc);
-        }
-      }
-    }
-
-    return steering;
-  }
-
   // Mutates the given insistance by increasing all insistances based on their
   // growth rates TODO MOVE TO CLASS
   public void increaseInsistances(Insistance insistance) {
@@ -427,6 +381,9 @@ public abstract class BaseAgent : MonoBehaviour, ISmellFollower, IWallAvoider {
   }
   public Vector2 avoidWalls(List<string> wallTags, Transform transfrom, float accel) {
     return wallAvoider.avoidWalls(wallTags, transform, accel);
+  }
+  public Vector2 avoidCollisions(List<string> toAvoid) {
+    return collisionAvoider.avoidCollisions(toAvoid);
   }
 
   // Used for displaying the info about this agent when it is clicked
