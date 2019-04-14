@@ -6,8 +6,15 @@ public class WallAvoider : IWallAvoider {
   // The lengths for the two types of whiskers
   private float sideRayLength;
   private float mainRayLength;
+
+  // The transform of the object avoiding walls
   private Transform transform;
+
+  // The max acceleration of the object, will flee walls with this acceleration
   private float maxAccel;
+
+  // Fleeing behavior implementation used to flee walls
+  private Fleer fleer;
 
   // Constructor to set the lengths for the whiskers, and the parameters needed to avoid walls
   public WallAvoider(float mainLength, float sideLength, Transform trans, float maxAccel) {
@@ -15,6 +22,7 @@ public class WallAvoider : IWallAvoider {
     this.sideRayLength = sideLength;
     this.transform = trans;
     this.maxAccel = maxAccel;
+    this.fleer = new Fleer(0, trans, maxAccel);
   }
 
   // Preforms three ray-casts to detect walls, one long ray in the center with two shorter
@@ -32,7 +40,7 @@ public class WallAvoider : IWallAvoider {
     if (lSideHit.collider != null) {
       if (wallTags.Contains(lSideHit.collider.tag)) {
         // Flee the point that was hit
-        steering += flee(lSideHit.point, transform, maxAccel);
+        steering += fleer.fleePoint(lSideHit.point);
       }
     }
     Vector3 rightDirection = Quaternion.AngleAxis(40, transform.forward) * transform.right;
@@ -40,7 +48,7 @@ public class WallAvoider : IWallAvoider {
     if (rSideHit.collider != null) {
       if (wallTags.Contains(rSideHit.collider.tag)) {
         // flee from the point that was hit
-        steering += flee(rSideHit.point, transform, maxAccel);
+        steering += fleer.fleePoint(rSideHit.point);
       }
     }
     // Preform the main whisker ray-cast
@@ -48,19 +56,10 @@ public class WallAvoider : IWallAvoider {
     if (hit.collider != null) {
       if (wallTags.Contains(hit.collider.tag)) {
         // flee the hit point
-        steering += flee(hit.point, transform, maxAccel);
+        steering += fleer.fleePoint(hit.point);
       }
     }
 
     return steering;
-  }
-
-  // Accelerate at max value in the away from the target
-  private Vector2 flee(Vector2 target, Transform transform, float accel) {
-    Vector2 direction = target - (Vector2)transform.position;
-
-    // Scale the vector in direction to max-acceleration
-    direction.Normalize();
-    return direction * -accel;
   }
 }
