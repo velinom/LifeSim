@@ -15,11 +15,15 @@ public class CollisionAvoider : ICollisionAvoider {
   // The max acceleration of the agent, flee collisions with this acceleration
   private float maxAccel;
 
+  // A flee behavior that is used as part of wall avoidance
+  private Fleer fleer;
+
   public CollisionAvoider(float collAvoidRad, Transform trans, Rigidbody2D rb2d, float maxAccel) {
     this.collisionAvoidanceRad = collAvoidRad;
     this.transform = trans;
     this.rigidBody = rb2d;
     this.maxAccel = maxAccel;
+    this.fleer = new Fleer(0, transform, maxAccel);
   }
 
   // Takes in a list of tags to avoid when they are within the collision detection
@@ -43,20 +47,11 @@ public class CollisionAvoider : ICollisionAvoider {
           (collider.attachedRigidbody.velocity * timeToClosest);
         Vector2 betweenClosest = projLoc - otherProjLoc;
         if (betweenClosest.magnitude < 0.8) {
-          steering += flee(otherProjLoc, transform, maxAccel);
+          steering += fleer.fleePoint(otherProjLoc);
         }
       }
     }
 
     return steering;
-  }
-
-  // Accelerate at max value in the away from the target
-  private Vector2 flee(Vector2 target, Transform transform, float accel) {
-    Vector2 direction = target - (Vector2)transform.position;
-
-    // Scale the vector in direction to max-acceleration
-    direction.Normalize();
-    return direction * -accel;
   }
 }

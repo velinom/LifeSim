@@ -5,7 +5,7 @@ using UnityEngine;
 // Class with a bunch of utility methods that are the same / used acrossed several
 // differnet agents
 public abstract class BaseAgent : MonoBehaviour,
-                      ISmellFollower, IWallAvoider, ICollisionAvoider {
+                      ISmellFollower, IWallAvoider, ICollisionAvoider, IFleer {
 
   // Consts from the game manager
   private float CELL_SIZE = GameManager.CELL_SIZE;
@@ -48,16 +48,22 @@ public abstract class BaseAgent : MonoBehaviour,
    * This section also includes parameters that these classes need
    */
   private ISmellFollower smellFollower;
+
   public float MAIN_RAY_LENGTH;
   public float  SIDE_RAY_LENGTH;
   private IWallAvoider wallAvoider;
+
   public float COLLISION_AVOIDANCE_RAD;
   private ICollisionAvoider collisionAvoider;
+
+  public float FLEE_TAG_RAD;
+  private IFleer fleer;
 
   public void initialize() {
     this.smellFollower = new SmellFollower();
     this.wallAvoider = new WallAvoider(MAIN_RAY_LENGTH, SIDE_RAY_LENGTH, transform, MAX_ACCEL);
     this.collisionAvoider = new CollisionAvoider(COLLISION_AVOIDANCE_RAD, transform, rigidBody, MAX_ACCEL);
+    this.fleer = new Fleer(FLEE_TAG_RAD, transform, MAX_ACCEL);
   }
 
   // Uses the transfrom of this GameObject to determine what cell the sheep is 
@@ -336,15 +342,6 @@ public abstract class BaseAgent : MonoBehaviour,
     return direction * MAX_ACCEL;
   }
 
-  // Accelerate at max value in the away from the target
-  public Vector2 flee(Vector2 target) {
-    Vector2 direction = target - (Vector2)this.transform.position;
-
-    // Scale the vector in direction to max-acceleration
-    direction.Normalize();
-    return direction * -MAX_ACCEL;
-  }
-
   // Calculates the force needed to make the agent slowly arrive at the
   // given location and gradualy come to a stop
   public Vector2 arriveAt(Vector2 targetLoc, Vector2 currentLoc, Vector2 currentVel, 
@@ -382,8 +379,14 @@ public abstract class BaseAgent : MonoBehaviour,
   public Vector2 avoidWalls(List<string> wallTags) {
     return wallAvoider.avoidWalls(wallTags);
   }
-  public Vector2 avoidCollisions(List<string> toAvoid) {
-    return collisionAvoider.avoidCollisions(toAvoid);
+  public Vector2 avoidCollisions(List<string> collisionTags) {
+    return collisionAvoider.avoidCollisions(collisionTags);
+  }
+  public Vector2 fleePoint(Vector2 point) {
+    return fleer.fleePoint(point);
+  }
+  public Vector2 fleeTags(List<string> fleeTags) {
+    return fleer.fleeTags(fleeTags);
   }
 
   // Used for displaying the info about this agent when it is clicked
