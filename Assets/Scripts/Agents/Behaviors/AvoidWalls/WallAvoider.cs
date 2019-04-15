@@ -51,6 +51,7 @@ public class WallAvoider : IWallAvoider {
         steering += fleer.fleePoint(rSideHit.point);
       }
     }
+
     // Preform the main whisker ray-cast
     RaycastHit2D hit = Physics2D.Raycast(transform.position, transform.right, this.mainRayLength);
     if (hit.collider != null) {

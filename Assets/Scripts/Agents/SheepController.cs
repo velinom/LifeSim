@@ -127,7 +127,7 @@ public class SheepController : BaseAgent {
     } else if (this.goal.name == "Seek Water") {
       mainGoalSteering = seekTile(BoardManager.TileType.Water, SmellType.Water);
     } else if (this.goal.name == "Sleep"){
-      return sleep(this.sleepParticles, 10);
+      mainGoalSteering = sleep(this.sleepParticles, 10);
     } else if (this.goal.name == "Wander") {
       mainGoalSteering = wander();
     } else {
@@ -157,8 +157,13 @@ public class SheepController : BaseAgent {
       return mainGoalSteering;
     }
 
+    // If the sheep is sleeping, just return the main goal and wall avoidance;
+    if (this.goal != null && this.goal.name == "Sleep") {
+      return mainGoalSteering * 0.2f + wallsSteering * 0.8f;
+    }
+
     // The total steering is a weighted sum of the components
-    return mainGoalSteering * 0.1f + wolvesSteering * 0.2f + wallsSteering * 0.5f + 
-           collisionsSteering * 0.2f;
+    return mainGoalSteering * 0.05f + wolvesSteering * 0.1f + wallsSteering * 0.6f + 
+           collisionsSteering * 0.25f;
   }
 }

@@ -158,7 +158,7 @@ public class WolfController : BaseAgent {
     }
 
     // The total steering is a weighted sum of the components
-    return mainGoalSteering * 0.1f + avoidWallsSteering * 0.4f + avoidCollisionSteering * 0.5f;
+    return mainGoalSteering * 0.1f + avoidWallsSteering * 0.5f + avoidCollisionSteering * 0.4f;
   }
 
   // ACTION METHOD: Returns the main steering vector to accomplish this action, 
@@ -169,7 +169,7 @@ public class WolfController : BaseAgent {
 
     // Preform a sphere-cast and determine if there is a sheep within a radius of the 
     // wolf (Represents the wolf seeing a sheep)
-    Collider2D[] hitColliders = Physics2D.OverlapCircleAll(this.transform.position, 240f);
+    Collider2D[] hitColliders = Physics2D.OverlapCircleAll(this.transform.position, 5f);
     int i = 0;
     while (i < hitColliders.Length) {
       Collider2D hitCollider = hitColliders[i];
