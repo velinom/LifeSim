@@ -5,7 +5,7 @@ using UnityEngine;
 // Class with a bunch of utility methods that are the same / used acrossed several
 // differnet agents
 public abstract class BaseAgent : MonoBehaviour, ICollisionAvoider, IWallAvoider, ISmellFollower, 
-                                  IArriver, IAligner, IFleer, ISeeker {
+                                  IArriver, IAligner, IFleer, ISeeker, IPursuer {
   // Consts from the game manager
   private float CELL_SIZE = GameManager.CELL_SIZE;
 
@@ -42,36 +42,32 @@ public abstract class BaseAgent : MonoBehaviour, ICollisionAvoider, IWallAvoider
    * This section also includes parameters that these classes need
    */
   private ISmellFollower smellFollower;
-
   public float MAIN_RAY_LENGTH;
   public float  SIDE_RAY_LENGTH;
   private IWallAvoider wallAvoider;
-
   public float COLLISION_AVOIDANCE_RAD;
   private ICollisionAvoider collisionAvoider;
-
   public float ARRIVE_RADIUS;
   public float SLOW_RADIUS;
   private IArriver arriver;
-
   public float ROTATE_ARRIVE_RAD;
   public float ROTATE_SLOW_RAD;
   private IAligner aligner;
-
   public float FLEE_TAG_RAD;
   private IFleer fleer;
-
   private ISeeker seeker;
+  private IPursuer pursuer;
 
   // Sets up the behaviors that this agent uses. Should be called by implementing classes
   public void initialize() {
     this.smellFollower = new SmellFollower();
     this.wallAvoider = new WallAvoider(MAIN_RAY_LENGTH, SIDE_RAY_LENGTH, transform, MAX_ACCEL);
     this.collisionAvoider = new CollisionAvoider(COLLISION_AVOIDANCE_RAD, transform, rigidBody, MAX_ACCEL);
-    this.arriver = new Arriver(ARRIVE_RADIUS, SLOW_RADIUS, MAX_SPEED, this.rigidBody);
+    this.arriver = new Arriver(ARRIVE_RADIUS, SLOW_RADIUS, MAX_SPEED, rigidBody);
     this.aligner = new Aligner(ROTATE_ARRIVE_RAD, ROTATE_SLOW_RAD, MAX_ANGULAR_ACC, transform, rigidBody);
     this.fleer = new Fleer(FLEE_TAG_RAD, transform, MAX_ACCEL);
     this.seeker = new Seeker(MAX_ACCEL, transform);
+    this.pursuer = new Pursuer(MAX_ACCEL, rigidBody);
   }
 
   // Uses the transfrom of this GameObject to determine what cell the sheep is 
@@ -281,19 +277,6 @@ public abstract class BaseAgent : MonoBehaviour, ICollisionAvoider, IWallAvoider
     return new Vector2(-1, -1);
   }
 
-  // Calculates the acceleration to seek a given target with a given velocity
-  public Vector2 pursue(Vector2 targetLoc, Vector2 targetVel) {
-    // Determine the time to reach the target's current location
-    Vector2 targetDirection = (Vector2)this.transform.position - targetLoc;
-    float timeToTarget = targetDirection.magnitude / rigidBody.velocity.magnitude;
-
-    // Project the target forward by that ammount of time
-    Vector2 seekLocation = targetLoc + targetVel * timeToTarget;
-
-    // Move at max accel toward the seek location
-    return seek(seekLocation);
-  }
-
   /* 
    * BEHAVIOR METHODS: The methods from the Behavior Interfeces that this agent
    * implements.
@@ -321,6 +304,9 @@ public abstract class BaseAgent : MonoBehaviour, ICollisionAvoider, IWallAvoider
   }
   public float align() {
     return this.aligner.align();
+  }
+  public Vector2 pursue(Rigidbody2D target) {
+    return this.pursuer.pursue(target);
   }
 
   // Used for displaying the info about this agent when it is clicked

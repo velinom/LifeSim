@@ -177,7 +177,6 @@ public class WolfController : BaseAgent {
         // If the wolf has reached a sheep
         float distanceTo = (hitCollider.transform.position - this.transform.position).magnitude;
         if (distanceTo < ARRIVE_RADIUS) {
-          Debug.Log("Wolf killed a sheep");
           Destroy(hitCollider.gameObject);
           this.goal.apply(this.insistance);
           this.goal = null;
@@ -186,7 +185,7 @@ public class WolfController : BaseAgent {
         }
 
         // Pursue the sheep
-        return seek(hitCollider.transform.position);
+        return pursue(hitCollider.attachedRigidbody);
       }
       i++;
     }
