@@ -107,7 +107,7 @@ public class SheepController : BaseAgent {
 
     // Calculate the rotation which is always towards the sheeps current 
     // velocity
-    float angularSteering = calculateRotation();
+    float angularSteering = align();
 
     // Apply the steering to actually move the sheep, both linear and 
     // rotational steering are applied here.

@@ -111,7 +111,7 @@ public class WolfController : BaseAgent {
 
     // Calculate the rotation which is always towards the wolf's current 
     // velocity
-    float angularSteering = calculateRotation();
+    float angularSteering = align();
 
     // Apply the steering to actually move the wolf, both linear and 
     // rotational steering are applied here.

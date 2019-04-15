@@ -5,8 +5,7 @@ using UnityEngine;
 // Class with a bunch of utility methods that are the same / used acrossed several
 // differnet agents
 public abstract class BaseAgent : MonoBehaviour, ICollisionAvoider, IWallAvoider, ISmellFollower, 
-                                  IArriver, IFleer, ISeeker {
-
+                                  IArriver, IAligner, IFleer, ISeeker {
   // Consts from the game manager
   private float CELL_SIZE = GameManager.CELL_SIZE;
 
@@ -16,9 +15,6 @@ public abstract class BaseAgent : MonoBehaviour, ICollisionAvoider, IWallAvoider
   public float MAX_ACCEL;
   public float MAX_ROTATION;
   public float MAX_ANGULAR_ACC;
-  
-  public float ROTATE_ARRIVE_RAD;
-  public float ROTATE_SLOW_RAD;
 
   // Stores the velocity and rotation of the agent (in rigidbody2D).
   protected Rigidbody2D rigidBody;
@@ -54,21 +50,27 @@ public abstract class BaseAgent : MonoBehaviour, ICollisionAvoider, IWallAvoider
   public float COLLISION_AVOIDANCE_RAD;
   private ICollisionAvoider collisionAvoider;
 
-  public float FLEE_TAG_RAD;
-  private IFleer fleer;
-
   public float ARRIVE_RADIUS;
   public float SLOW_RADIUS;
   private IArriver arriver;
 
+  public float ROTATE_ARRIVE_RAD;
+  public float ROTATE_SLOW_RAD;
+  private IAligner aligner;
+
+  public float FLEE_TAG_RAD;
+  private IFleer fleer;
+
   private ISeeker seeker;
 
+  // Sets up the behaviors that this agent uses. Should be called by implementing classes
   public void initialize() {
     this.smellFollower = new SmellFollower();
     this.wallAvoider = new WallAvoider(MAIN_RAY_LENGTH, SIDE_RAY_LENGTH, transform, MAX_ACCEL);
     this.collisionAvoider = new CollisionAvoider(COLLISION_AVOIDANCE_RAD, transform, rigidBody, MAX_ACCEL);
-    this.fleer = new Fleer(FLEE_TAG_RAD, transform, MAX_ACCEL);
     this.arriver = new Arriver(ARRIVE_RADIUS, SLOW_RADIUS, MAX_SPEED, this.rigidBody);
+    this.aligner = new Aligner(ROTATE_ARRIVE_RAD, ROTATE_SLOW_RAD, MAX_ANGULAR_ACC, transform, rigidBody);
+    this.fleer = new Fleer(FLEE_TAG_RAD, transform, MAX_ACCEL);
     this.seeker = new Seeker(MAX_ACCEL, transform);
   }
 
@@ -240,33 +242,6 @@ public abstract class BaseAgent : MonoBehaviour, ICollisionAvoider, IWallAvoider
     return seek(pointOnCircle);
   }
 
-  // Calculate rotation, Rotation is always in the direction of the 
-  // current velocity.
-  public float calculateRotation() {
-    float targetOrientation = Mathf.Rad2Deg * Mathf.Atan2(rigidBody.velocity.y, rigidBody.velocity.x);
-    
-    // The target rotation depends on the radii for "arive" and "slow"
-    float curOrientation = transform.eulerAngles.z;
-    float targetRotation = targetOrientation - curOrientation;
-    while (targetRotation > 180) targetRotation -= 360;
-    while (targetRotation < -180) targetRotation += 360;
-
-    if (Mathf.Abs(targetRotation) < ROTATE_ARRIVE_RAD) {
-      targetRotation = 0;
-    } else if (Mathf.Abs(targetRotation) < ROTATE_SLOW_RAD) {
-      targetRotation = MAX_ROTATION * targetRotation / ROTATE_ARRIVE_RAD;
-    } else {
-      targetRotation = targetRotation > 0 ? MAX_ROTATION : -MAX_ROTATION;
-    }
-
-    // If the agent is stopped, make it stop rotating
-    if (rigidBody.velocity.magnitude < 0.01) {
-      targetRotation = -rigidBody.angularVelocity;
-    }
-    float angSteering = targetRotation - rigidBody.angularVelocity;
-    return angSteering;
-  }
-
   // Mutates the given insistance by increasing all insistances based on their
   // growth rates TODO MOVE TO CLASS
   public void increaseInsistances(Insistance insistance) {
@@ -351,6 +326,9 @@ public abstract class BaseAgent : MonoBehaviour, ICollisionAvoider, IWallAvoider
   }
   public Vector2 seek(Vector2 point) {
     return seeker.seek(point);
+  }
+  public float align() {
+    return this.aligner.align();
   }
 
   // Used for displaying the info about this agent when it is clicked

@@ -35,8 +35,6 @@ public class Arriver : IArriver {
       targetSpeed = 0;
     }
 
-    Debug.Log(targetSpeed);
-
     // Get the target velocity including direction
     Vector2 targetVelocity = (location - (Vector2)rigidBody.position);
     targetVelocity.Normalize();
