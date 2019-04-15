@@ -127,7 +127,7 @@ public class SheepController : BaseAgent {
     } else if (this.goal.name == "Seek Water") {
       mainGoalSteering = seekTile(BoardManager.TileType.Water, SmellType.Water);
     } else if (this.goal.name == "Sleep"){
-      mainGoalSteering = sleep(this.sleepParticles, 10);
+      return sleep(this.sleepParticles, 10);
     } else if (this.goal.name == "Wander") {
       mainGoalSteering = wander();
     } else {
@@ -140,18 +140,30 @@ public class SheepController : BaseAgent {
     // Cast whisker rays in front of the sheep to determine if there is a wall there
     List<string> wallTags = new List<string> { "HighElevation" };
     if (this.goal != null && this.goal.name != "Seek Water") wallTags.Add("Water");
-    Vector2 avoidWallsSteering = avoidWalls(wallTags);
+    Vector2 wallsSteering = avoidWalls(wallTags);
 
     // Collision Avoidence:
     // use distnace at closest approach to avoid collisions
     List<string> collisionTags = new List<string> { "Wolf", "Sheep" };
-    Vector2 avoidCollisionSteering = avoidCollisions(collisionTags);
+    Vector2 collisionsSteering = avoidCollisions(collisionTags);
 
-    if (avoidWallsSteering.magnitude < 0.001 && avoidCollisionSteering.magnitude < 0.001) {
+    // Flee from wolves, sheep will avoid wolves that they can "see". Wolves can be seen 
+    // inside of the FLEE_TAG_RAD passed in through unity
+    Vector2 wolvesSteering = fleeTags(new List<string> { "Wolf" });
+
+    // If none of the low-level steerings return anything, just use the main goal
+    if (wallsSteering.magnitude < 0.001 && collisionsSteering.magnitude < 0.001 &&
+        wolvesSteering.magnitude < 0.001) {
       return mainGoalSteering;
     }
 
+    // If the agent is sleeping just return the main goal
+    //if (this.goal.name == "Sleep") {
+      //return mainGoalSteering;
+    //}
+
     // The total steering is a weighted sum of the components
-    return mainGoalSteering * 0.1f + avoidWallsSteering * 0.4f + avoidCollisionSteering * 0.5f;
+    return mainGoalSteering * 0.1f + wolvesSteering * 0.2f + wallsSteering * 0.4f + 
+           collisionsSteering * 0.4f;
   }
 }
