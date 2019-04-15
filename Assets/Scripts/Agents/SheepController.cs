@@ -154,30 +154,4 @@ public class SheepController : BaseAgent {
     // The total steering is a weighted sum of the components
     return mainGoalSteering * 0.1f + avoidWallsSteering * 0.4f + avoidCollisionSteering * 0.5f;
   }
-
-  // Preform an update on the sheep based on the linear acceleration and rotation.
-  // Then move the sheep based on the new velocity and orientatoin.
-  private void applySteering(Vector2 linSteering, float angSteering) {
-    // Begin by clamping the linear / angular acceleration
-    if (linSteering.magnitude > MAX_ACCEL) {
-      linSteering.Normalize();
-      linSteering *= MAX_ACCEL;
-    }
-    if (Mathf.Abs(angSteering) > MAX_ANGULAR_ACC) {
-      angSteering = angSteering > 0 ? MAX_ANGULAR_ACC : -MAX_ANGULAR_ACC;
-    }
-
-    // Update the velocities using the accelerations
-    rigidBody.velocity += linSteering;
-    rigidBody.angularVelocity += angSteering;
-
-    // Clip the velocity/rotation if they are too high
-    if (rigidBody.velocity.magnitude > MAX_SPEED) {
-      rigidBody.velocity = rigidBody.velocity.normalized;
-      rigidBody.velocity *= MAX_SPEED;
-    }
-    if (Mathf.Abs(rigidBody.angularVelocity) > MAX_ROTATION) {
-      rigidBody.angularVelocity = rigidBody.angularVelocity > 0 ? MAX_ROTATION : - MAX_ROTATION;
-    }
-  }
 }

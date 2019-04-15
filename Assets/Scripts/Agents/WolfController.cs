@@ -196,30 +196,4 @@ public class WolfController : BaseAgent {
 
     return goalSteering;
   }
-
-  // Preform an update on the wolf based on the linear acceleration and rotation.
-  // Then move the wolf based on the new velocity and orientation.
-  private void applySteering(Vector2 linearSteering, float angularSteering) {
-    // Begin by clamping the linear / angular acceleration
-    if (linearSteering.magnitude > MAX_ACCEL) {
-      linearSteering.Normalize();
-      linearSteering *= MAX_ACCEL;
-    }
-    if (Mathf.Abs(angularSteering) > MAX_ANGULAR_ACC) {
-      angularSteering = angularSteering > 0 ? MAX_ANGULAR_ACC : -MAX_ANGULAR_ACC;
-    }
-
-    // Update the velocity and rotation using the steering
-    rigidBody.velocity += linearSteering;
-    rigidBody.angularVelocity += angularSteering;
-
-    // Clip the velocity/rotation if they are too high
-    if (rigidBody.velocity.magnitude > MAX_SPEED) {
-      rigidBody.velocity = rigidBody.velocity.normalized;
-      rigidBody.velocity *= MAX_SPEED;
-    }
-    if (Mathf.Abs(rigidBody.angularVelocity) > MAX_ROTATION) {
-      rigidBody.angularVelocity = rigidBody.angularVelocity > 0 ? MAX_ROTATION : - MAX_ROTATION;
-    }
-  }
 }

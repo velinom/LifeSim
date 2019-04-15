@@ -5,7 +5,7 @@ using UnityEngine;
 // Class with a bunch of utility methods that are the same / used acrossed several
 // differnet agents
 public abstract class BaseAgent : MonoBehaviour, ICollisionAvoider, IWallAvoider, ISmellFollower, 
-                                  IArriver, IAligner, IFleer, ISeeker, IPursuer, IWanderer {
+                                  IArriver, IAligner, IFleer, IMover, ISeeker, IPursuer, IWanderer {
   // Consts from the game manager
   private float CELL_SIZE = GameManager.CELL_SIZE;
 
@@ -59,6 +59,7 @@ public abstract class BaseAgent : MonoBehaviour, ICollisionAvoider, IWallAvoider
   private IPursuer pursuer;
   public float WANDER_TIME;
   private IWanderer wanderer;
+  private IMover mover;
 
   // Sets up the behaviors that this agent uses. Should be called by implementing classes
   public void initialize() {
@@ -71,6 +72,7 @@ public abstract class BaseAgent : MonoBehaviour, ICollisionAvoider, IWallAvoider
     this.seeker = new Seeker(MAX_ACCEL, transform);
     this.pursuer = new Pursuer(MAX_ACCEL, rigidBody);
     this.wanderer = new Wanderer(MAX_ACCEL, transform);
+    this.mover = new Mover(MAX_ACCEL, MAX_ANGULAR_ACC, MAX_SPEED, MAX_ROTATION, rigidBody);
   }
 
   // Uses the transfrom of this GameObject to determine what cell the sheep is 
@@ -259,6 +261,12 @@ public abstract class BaseAgent : MonoBehaviour, ICollisionAvoider, IWallAvoider
   }
   public Vector2 avoidCollisions(List<string> collisionTags) {
     return collisionAvoider.avoidCollisions(collisionTags);
+  } 
+  public Vector2 arriveAt(Vector2 point) {
+    return arriver.arriveAt(point);
+  }
+  public float align() {
+    return this.aligner.align();
   }
   public Vector2 fleePoint(Vector2 point) {
     return fleer.fleePoint(point);
@@ -266,17 +274,14 @@ public abstract class BaseAgent : MonoBehaviour, ICollisionAvoider, IWallAvoider
   public Vector2 fleeTags(List<string> fleeTags) {
     return fleer.fleeTags(fleeTags);
   }
-  public Vector2 arriveAt(Vector2 point) {
-    return arriver.arriveAt(point);
-  }
-  public Vector2 seek(Vector2 point) {
-    return seeker.seek(point);
-  }
-  public float align() {
-    return this.aligner.align();
+  public void applySteering(Vector2 linSteering, float angSteering) {
+    this.mover.applySteering(linSteering, angSteering);
   }
   public Vector2 pursue(Rigidbody2D target) {
     return this.pursuer.pursue(target);
+  }
+  public Vector2 seek(Vector2 point) {
+    return seeker.seek(point);
   }
   private float wanderStartTime = -1;
   public Vector2 wander() {
