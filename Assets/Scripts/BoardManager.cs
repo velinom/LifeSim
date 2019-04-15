@@ -438,7 +438,7 @@ public class BoardManager : MonoBehaviour {
 
 		// Setup the smells and store them for easy access in game
 		propagateSmells();
-		//displaySmells(SmellType.GroundFood);
+		//displaySmells(SmellType.Water);
 	}
 
 	/*

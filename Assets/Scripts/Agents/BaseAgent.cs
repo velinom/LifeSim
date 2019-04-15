@@ -8,6 +8,7 @@ public abstract class BaseAgent : MonoBehaviour, ICollisionAvoider, IWallAvoider
                                   IArriver, IAligner, IFleer, IMover, ISeeker, IPursuer, IWanderer {
   // Consts from the game manager
   private float CELL_SIZE = GameManager.CELL_SIZE;
+  private int SIZE = GameManager.SIZE;
 
   // MOVEMENT CONSTANTS,
   // Should be passed in through unity to base classes
@@ -80,6 +81,11 @@ public abstract class BaseAgent : MonoBehaviour, ICollisionAvoider, IWallAvoider
   public Vector2 getCurrentCell() {
     int xCell = (int)Mathf.Round(this.transform.position.x / CELL_SIZE);
     int yCell = (int)Mathf.Round(this.transform.position.y / CELL_SIZE);
+
+    if (xCell >= SIZE) xCell = SIZE - 1;
+    if (yCell >= SIZE) yCell = SIZE - 1;
+    if (xCell < 0) xCell = 0;
+    if (yCell < 0) yCell = 0;
 
     return new Vector2(xCell, yCell);
   }
@@ -218,7 +224,7 @@ public abstract class BaseAgent : MonoBehaviour, ICollisionAvoider, IWallAvoider
       for (int yOffset = -distance; yOffset < distance + 1; yOffset++) {
         int curX = (int)currentCell.x + xOffset;
         int curY = (int)currentCell.y + yOffset;
-        if (curX >= 0 && curX < GameManager.SIZE && curY >= 0 && curY < GameManager.SIZE) {
+        if (curX >= 0 && curX < SIZE && curY >= 0 && curY < SIZE) {
           if (foodArray[curX, curY] == type) {
             return new Vector2(curX, curY);
           }

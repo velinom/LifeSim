@@ -13,7 +13,7 @@ public class SmellFollower : ISmellFollower {
       for (int yOffset = -1; yOffset < 2; yOffset++) {
         int curX = (int)location.x + xOffset;
         int curY = (int)location.y + yOffset;
-        if (curX >= 0 && curX < smells.Length && curY >= 0 && curY < smells.Length) {
+        if (curX >= 0 && curX < smells.GetLength(0) && curY >= 0 && curY < smells.GetLength(0)) {
           double curSmellVal = smells[curX, curY].getSmell(type);
           Vector2 curSmellCell = new Vector2(curX, curY);
           Vector2 curDirection = curSmellCell - location;

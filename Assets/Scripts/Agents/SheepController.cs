@@ -157,13 +157,8 @@ public class SheepController : BaseAgent {
       return mainGoalSteering;
     }
 
-    // If the agent is sleeping just return the main goal
-    //if (this.goal.name == "Sleep") {
-      //return mainGoalSteering;
-    //}
-
     // The total steering is a weighted sum of the components
-    return mainGoalSteering * 0.1f + wolvesSteering * 0.2f + wallsSteering * 0.4f + 
-           collisionsSteering * 0.4f;
+    return mainGoalSteering * 0.1f + wolvesSteering * 0.2f + wallsSteering * 0.5f + 
+           collisionsSteering * 0.2f;
   }
 }
