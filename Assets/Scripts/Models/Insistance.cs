@@ -60,6 +60,14 @@ namespace Models {
       return totalInsistance;
     }
 
+    // mutates the insistances stored in this object by increasing them 
+    // by their growth rates
+    public void increase() {
+      foreach (InsistanceType type in this.insistanceTypes) {
+        this.insistances[type] += this.growthRates[type] * Time.deltaTime;
+      }
+    }
+
     // Create a deep copy of this insistance
     public Insistance deepCopy() {
       // Copy the insistances dictionary

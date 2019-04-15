@@ -114,7 +114,7 @@ public class SheepController : BaseAgent {
     applySteering(linearSteering, angularSteering);
 
     // Update insistances because some time has passed
-    increaseInsistances(this.insistance);
+    this.insistance.increase();
   }
 
   // Determine the force that should be applied to move the sheep on this 

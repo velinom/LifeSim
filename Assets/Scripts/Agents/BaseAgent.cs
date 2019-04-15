@@ -242,14 +242,6 @@ public abstract class BaseAgent : MonoBehaviour, ICollisionAvoider, IWallAvoider
     return seek(pointOnCircle);
   }
 
-  // Mutates the given insistance by increasing all insistances based on their
-  // growth rates TODO MOVE TO CLASS
-  public void increaseInsistances(Insistance insistance) {
-    foreach (InsistanceType type in insistance.insistanceTypes) {
-      insistance.insistances[type] += insistance.growthRates[type] * Time.deltaTime;
-    }
-  }
-
   // Return the location of the first object of the given food type within
   // the given distance of the location. If none is found, return (-1, -1)
   public Vector2 getCloseFood(BoardManager.Food type, int distance,
