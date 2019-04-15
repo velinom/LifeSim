@@ -104,6 +104,7 @@ MonoBehaviour:
   ROTATE_ARRIVE_RAD: 5
   ROTATE_SLOW_RAD: 30
   FLEE_TAG_RAD: 6
+  WANDER_TIME: 10
 --- !u!198 &198121576688136540
 ParticleSystem:
   m_ObjectHideFlags: 1

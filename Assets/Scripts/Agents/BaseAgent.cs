@@ -5,7 +5,7 @@ using UnityEngine;
 // Class with a bunch of utility methods that are the same / used acrossed several
 // differnet agents
 public abstract class BaseAgent : MonoBehaviour, ICollisionAvoider, IWallAvoider, ISmellFollower, 
-                                  IArriver, IAligner, IFleer, ISeeker, IPursuer {
+                                  IArriver, IAligner, IFleer, ISeeker, IPursuer, IWanderer {
   // Consts from the game manager
   private float CELL_SIZE = GameManager.CELL_SIZE;
 
@@ -57,6 +57,8 @@ public abstract class BaseAgent : MonoBehaviour, ICollisionAvoider, IWallAvoider
   private IFleer fleer;
   private ISeeker seeker;
   private IPursuer pursuer;
+  public float WANDER_TIME;
+  private IWanderer wanderer;
 
   // Sets up the behaviors that this agent uses. Should be called by implementing classes
   public void initialize() {
@@ -68,6 +70,7 @@ public abstract class BaseAgent : MonoBehaviour, ICollisionAvoider, IWallAvoider
     this.fleer = new Fleer(FLEE_TAG_RAD, transform, MAX_ACCEL);
     this.seeker = new Seeker(MAX_ACCEL, transform);
     this.pursuer = new Pursuer(MAX_ACCEL, rigidBody);
+    this.wanderer = new Wanderer(MAX_ACCEL, transform);
   }
 
   // Uses the transfrom of this GameObject to determine what cell the sheep is 
@@ -205,39 +208,6 @@ public abstract class BaseAgent : MonoBehaviour, ICollisionAvoider, IWallAvoider
     return new Vector2(-rigidBody.velocity.x, -rigidBody.velocity.y);
   }
 
-  // ACTION METHOD make the agent wander using a seek behavior toward a point.
-  // The point that the agent is seeking is based on the agnet's current velocity
-  // and is offset by some random ammount
-  private float wanderStartTime = -1;
-  private float wanderAngle; // The angle of the target on the circle
-  public Vector2 wander() {
-    // First time wander is called, setup the circle where the seek location
-    // will live
-    if (this.wanderStartTime < 0) {
-      wanderStartTime = Time.time;
-      
-      // Pick an angle between 0 and 360
-      wanderAngle = Random.Range(0, 360);
-    }
-
-    // Update the wnader angle and Calculate the point to seek
-    // The point to seek is on a circle in front of the agent at the wander angle
-    // the wander angle moves randomly every frame.
-    wanderAngle += Random.Range(-15, 15);
-    Vector2 inFrontOfSheep = this.transform.position + this.transform.right * 2;
-    Vector2 fromCenterToEdge = new Vector2(Mathf.Cos(wanderAngle), Mathf.Sin(wanderAngle));
-    Vector2 pointOnCircle = inFrontOfSheep + fromCenterToEdge;
-
-    if (Time.time > this.wanderStartTime + 10) {
-      this.goal.apply(this.insistance);
-      this.goal = null;
-      this.target = new Vector2(-1, -1);
-      this.wanderStartTime = -1;
-    }
-
-    return seek(pointOnCircle);
-  }
-
   // Return the location of the first object of the given food type within
   // the given distance of the location. If none is found, return (-1, -1)
   public Vector2 getCloseFood(BoardManager.Food type, int distance,
@@ -307,6 +277,23 @@ public abstract class BaseAgent : MonoBehaviour, ICollisionAvoider, IWallAvoider
   }
   public Vector2 pursue(Rigidbody2D target) {
     return this.pursuer.pursue(target);
+  }
+  private float wanderStartTime = -1;
+  public Vector2 wander() {
+    // First time wander is called, setup the circle where the seek location
+    // will live
+    if (this.wanderStartTime < 0) {
+      wanderStartTime = Time.time;
+    }
+
+    if (Time.time > this.wanderStartTime + WANDER_TIME) {
+      this.goal.apply(this.insistance);
+      this.goal = null;
+      this.target = new Vector2(-1, -1);
+      this.wanderStartTime = -1;
+    }
+
+    return this.wanderer.wander();
   }
 
   // Used for displaying the info about this agent when it is clicked

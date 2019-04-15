@@ -21,10 +21,15 @@ public class Pursuer : IPursuer {
   // Determine the steering vector for this agnet to pursue a target 
   // with the given rigid-body
   public Vector2 pursue(Rigidbody2D target) {
-    // Determine the time to reach the target's current location
+    // Determine the time to reach the target's current location, 
+    // need to handle edge case to avoid dividing by 0
     Vector2 targetDirection = rigidBody.position - target.position;
-    float timeToTarget = targetDirection.magnitude / rigidBody.velocity.magnitude;
-
+    float timeToTarget;
+    if (rigidBody.velocity.magnitude < 0.001) {
+      timeToTarget = 2;
+    } else {
+      timeToTarget = targetDirection.magnitude / rigidBody.velocity.magnitude;
+    }
     // Project the target forward by that ammount of time
     Vector2 seekLocation = target.position + target.velocity * timeToTarget;
 

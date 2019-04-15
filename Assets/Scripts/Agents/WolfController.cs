@@ -218,7 +218,7 @@ public class WolfController : BaseAgent {
       rigidBody.velocity = rigidBody.velocity.normalized;
       rigidBody.velocity *= MAX_SPEED;
     }
-    if (Mathf.Abs(rigidBody.rotation) > MAX_ROTATION) {
+    if (Mathf.Abs(rigidBody.angularVelocity) > MAX_ROTATION) {
       rigidBody.angularVelocity = rigidBody.angularVelocity > 0 ? MAX_ROTATION : - MAX_ROTATION;
     }
   }
