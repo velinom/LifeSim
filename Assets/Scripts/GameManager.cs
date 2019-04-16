@@ -18,6 +18,7 @@ public class GameManager : MonoBehaviour {
 	// Game Object prefabs passed in through unity to spawn when needed
 	public BaseAgent[] SHEEP;
 	public BaseAgent[] WOLVES;
+	public FormationController FORMATION;
 
 	// Transform to hold all the animals that the game manager spawns
 	private Transform animalHolder; 
@@ -36,7 +37,7 @@ public class GameManager : MonoBehaviour {
 
 	// Animal information, animals are spawned here
 	private List<BaseAgent> spawnedSheep;
-	private List<BaseAgent> spawnedWolves;
+	//private List<BaseAgent> spawnedWolves;
 
 	// Called when the GameManager is instantiated for the first time. Initialize values
 	// and sets up the singleton instance
@@ -50,7 +51,6 @@ public class GameManager : MonoBehaviour {
 
 		// Initialize
 		this.spawnedSheep = new List<BaseAgent>();
-		this.spawnedWolves = new List<BaseAgent>();
 
 		// Make sure that sheep smells update every so many seconds
 		InvokeRepeating("UpdateSheepSmell", 1.0f, 2.0f);
@@ -117,10 +117,14 @@ public class GameManager : MonoBehaviour {
 			toSpawn = WOLVES[Random.Range(0, WOLVES.Length)];
 			BaseAgent spawned = Instantiate(toSpawn, location, Quaternion.identity);
 			spawned.transform.SetParent(animalHolder);
-			this.spawnedWolves.Add(spawned);
 		} else {
 			Debug.Log("Attempted to spawn unrecognized animal");
 		}
+	}
+
+	// Spawn a pack of wolves at the given location
+	public void spawnWolfPack(Vector2 location) {
+		FormationController formationController = Instantiate(FORMATION, location, Quaternion.identity);
 	}
 
 	/*
@@ -138,5 +142,4 @@ public class GameManager : MonoBehaviour {
 	public BoardManager.Food[, ] getFoodArray() { return this.foodArray; }
 	public BoardManager.TileType[, ] getBoardArray() { return this.boardArray; }
 	public List<BaseAgent> getSpawnedSheep() { return this.spawnedSheep; }
-	public List<BaseAgent> getSpawnedWolves() { return this.spawnedWolves; }
 }

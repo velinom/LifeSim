@@ -12,7 +12,7 @@ public class HudController : MonoBehaviour {
 	public static HudController instance = null;
 
 	// The modes that the hud can be in.
-	private enum Mode { AddSheep, AddWolf, Select }
+	private enum Mode { AddSheep, AddWolf, AddWolfPack, Select }
 	
 	// Reference to the layout-group that will hold the insistance info
 	// passed in through Unity
@@ -58,18 +58,30 @@ public class HudController : MonoBehaviour {
 					GameManager.instance.spawnAnimalAtLocation("sheep", mouseWorldPos);
 				} else if (this.mode == Mode.AddWolf) {
 					GameManager.instance.spawnAnimalAtLocation("wolf", mouseWorldPos);
+				} else if (this.mode == Mode.AddWolfPack) {
+					GameManager.instance.spawnWolfPack(mouseWorldPos);
 				}
+			}
+		}
+
+		// If the user is placing a wolf and presses the "p" key, start placing a
+		// pack of wolves instead
+		if (this.mode == Mode.AddWolf) {
+			if (Input.GetKey(KeyCode.P)) {
+				this.mode = Mode.AddWolfPack;
 			}
 		}
 
 		// Update the text at the top of the HUD
 		if (this.mode == Mode.AddSheep) {
-			topText.text = "Click to add sheep";
+			topText.text = "Click to add a sheep";
 		} else if (this.mode == Mode.AddWolf) {
-			topText.text = "Click to add wolves";
+			topText.text = "Click to add a wolf";
 		} else if (this.mode == Mode.Select) {
 			topText.text = "Click on a agent to select";
-		} else {
+		} else if (this.mode == Mode.AddWolfPack) {
+			topText.text = "Spawn a pack of wolves";
+		}else {
 			topText.text = "";
 		}
 		

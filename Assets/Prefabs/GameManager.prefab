@@ -75,6 +75,8 @@ MonoBehaviour:
   - {fileID: 114375331251436662, guid: 9e3c878058b785b418367d61e19fd5bd, type: 2}
   WOLVES:
   - {fileID: 114794670211674096, guid: a8ef8a9a1a4c1d7418d17a5e1b48e02a, type: 2}
+  FORMATION: {fileID: 114304728791185878, guid: e38bb2b5a27f37e4db20c93b2407273d,
+    type: 2}
 --- !u!114 &114177822606438078
 MonoBehaviour:
   m_ObjectHideFlags: 1

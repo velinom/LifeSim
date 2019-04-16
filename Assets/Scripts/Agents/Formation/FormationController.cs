@@ -2,12 +2,12 @@ using Models;
 using System.Collections.Generic;
 using UnityEngine;
 
-using Random = UnityEngine.Random;
+// Controller for a formation of agents, uses an anchor point so that each 
+// agent in the formation can use its own steering behaviors
+public class FormationController : BaseAgent {
 
-public class WolfController : BaseAgent {
-
-  // Reference to the particle system that should play while the wolf sleeps
-  private ParticleSystem sleepParticles;
+  // Wolf Prefab to use when spawning wolves
+  public WolfController WOLF;
 
   // The max insistance any type can start at, insistances start at a
   // random value below this one.
@@ -21,17 +21,30 @@ public class WolfController : BaseAgent {
   private List<Action> actions;
 
   // PACK BEHAVIOR
-  // Is this wolf part of a pack
-  public bool inPack;
+  // List of wolves in this pack
+  private List<WolfController> wolves;
+  private List<Vector2> formationPoints;
 
-  // The Location where this wolf should be as part of a pack
-  public Vector2 formationPoint;
-
-  // Setup this wolf by initializing fields
+  // Setup this wolf-pack by initializing fields
   void Start() {
-    // Get the references to the components we need to store
-    this.sleepParticles = GetComponent<ParticleSystem>();
     this.rigidBody = GetComponent<Rigidbody2D>();
+
+    // Create four points in formation arround this formation controller
+    // these four points will be seeked by the members of the formation
+    // spawn agents at each point and set them to be part of a formation
+    Vector2 startPos = transform.position;
+    formationPoints = new List<Vector2>();
+    formationPoints.Add(new Vector2(-1, 1));
+    formationPoints.Add(new Vector2(-2, 2));
+    formationPoints.Add(new Vector2(-1, -1));
+    formationPoints.Add(new Vector2(-2, -2));
+    wolves = new List<WolfController>();
+    foreach (Vector2 formationPoint in formationPoints) {
+      WolfController wolf = Instantiate(WOLF, startPos + formationPoint, Quaternion.identity);
+      wolf.inPack = true;
+      wolf.formationPoint = formationPoint;
+      wolves.Add(wolf);
+    }
 
     // Setup the insistance fields, growth rates, etc.
     setupInsistance();
@@ -100,13 +113,19 @@ public class WolfController : BaseAgent {
 	// Update is called once per frame used to calculate the steering 
   // for the given frame as well as determine the best action if there isn't one
 	void Update () {
+
+    // Update the points to seek for all the wolf's in this formation
+    for (int i = 0; i < this.wolves.Count; i++) {
+      this.wolves[i].formationPoint = (Vector2)transform.position + this.formationPoints[i];
+    }
+
     // Update the current cell so that it is known the whole update
     this.currentCell = getCurrentCell();
 
     // Determine the Goal or Action that the Sheep will take
     // This goal is set into the field giving the type of action
-    if (this.goal == null && !this.inPack) {
-      determineGoal(this.actions, this.insistance, "wolf");
+    if (this.goal == null) {
+      determineGoal(this.actions, this.insistance, "wolf-pack");
     }
 
     // Calculate the steering, this includes the high level goal steering as
@@ -130,14 +149,12 @@ public class WolfController : BaseAgent {
   private Vector2 calculateSteering() {
     // Calculate the main steering towrad the sheep's goal
     Vector2 mainGoalSteering = new Vector2(-1, -1);
-    if (this.inPack) {
-      mainGoalSteering = arriveAt(this.formationPoint);
-    } else if (this.goal.name == "Hunt") {
+    if (this.goal.name == "Hunt") {
       mainGoalSteering = hunt();
     } else if (this.goal.name == "Seek Water") {
       mainGoalSteering = seekTile(BoardManager.TileType.Water, SmellType.Water);
     } else if (this.goal.name == "Sleep"){
-      mainGoalSteering = sleep(this.sleepParticles, 10);
+      //mainGoalSteering = sleep(this.sleepParticles, 10);
     } else if (this.goal.name == "Wander") {
       mainGoalSteering = wander();
     } else {
@@ -153,18 +170,13 @@ public class WolfController : BaseAgent {
     if (this.goal != null && this.goal.name != "Seek Water") wallTags.Add("Water");
     Vector2 avoidWallsSteering = avoidWalls(wallTags);
 
-    // Collision Avoidence:
-    // use distnace at closest approach to avoid collisions
-    List<string> collisionTags = new List<string> { "Sheep", "Wolf" };
-    Vector2 avoidCollisionSteering = avoidCollisions(collisionTags);
-
     // If we don't need to avoid anything, just steer
-    if (avoidWallsSteering.magnitude < 0.001 && avoidCollisionSteering.magnitude < 0.001) {
+    if (avoidWallsSteering.magnitude < 0.001) {
       return mainGoalSteering;
     }
 
     // The total steering is a weighted sum of the components
-    return mainGoalSteering * 0.1f + avoidWallsSteering * 0.5f + avoidCollisionSteering * 0.4f;
+    return mainGoalSteering * 0.2f + avoidWallsSteering * 0.8f;
   }
 
   // ACTION METHOD: Returns the main steering vector to accomplish this action, 
