@@ -7,7 +7,7 @@ using Random = UnityEngine.Random;
 public class WolfController : BaseAgent {
 
   // Reference to the particle system that should play while the wolf sleeps
-  private ParticleSystem sleepParticles;
+  public ParticleSystem sleepParticles;
 
   // The max insistance any type can start at, insistances start at a
   // random value below this one.

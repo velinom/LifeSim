@@ -39,10 +39,13 @@ public class FormationController : BaseAgent {
     formationPoints.Add(new Vector2(-1, -1));
     formationPoints.Add(new Vector2(-2, -2));
     wolves = new List<WolfController>();
-    foreach (Vector2 formationPoint in formationPoints) {
-      WolfController wolf = Instantiate(WOLF, startPos + formationPoint, Quaternion.identity);
+    for (int i =0; i < formationPoints.Count; i++) {
+      Vector2 loc = transform.position + 
+                   (transform.right * this.formationPoints[i].x) + 
+                   (transform.up * this.formationPoints[i].y);
+      WolfController wolf = Instantiate(WOLF, loc, Quaternion.identity);
       wolf.inPack = true;
-      wolf.formationPoint = formationPoint;
+      wolf.formationPoint = loc;
       wolves.Add(wolf);
     }
 
@@ -116,7 +119,10 @@ public class FormationController : BaseAgent {
 
     // Update the points to seek for all the wolf's in this formation
     for (int i = 0; i < this.wolves.Count; i++) {
-      this.wolves[i].formationPoint = (Vector2)transform.position + this.formationPoints[i];
+      Vector2 loc = transform.position + 
+                   (transform.right * this.formationPoints[i].x) + 
+                   (transform.up * this.formationPoints[i].y);
+      this.wolves[i].formationPoint = loc;
     }
 
     // Update the current cell so that it is known the whole update
@@ -154,7 +160,7 @@ public class FormationController : BaseAgent {
     } else if (this.goal.name == "Seek Water") {
       mainGoalSteering = seekTile(BoardManager.TileType.Water, SmellType.Water);
     } else if (this.goal.name == "Sleep"){
-      //mainGoalSteering = sleep(this.sleepParticles, 10);
+      mainGoalSteering = sleep(this.wolves[0].sleepParticles, 10);
     } else if (this.goal.name == "Wander") {
       mainGoalSteering = wander();
     } else {
