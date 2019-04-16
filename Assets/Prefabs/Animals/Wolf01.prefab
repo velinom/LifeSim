@@ -91,7 +91,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a9f4ffa07f241f44f90018e5c67dd68e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  MAX_SPEED: 2.4
+  MAX_SPEED: 2.3
   MAX_ACCEL: 0.3
   MAX_ROTATION: 260
   MAX_ANGULAR_ACC: 120
@@ -105,6 +105,9 @@ MonoBehaviour:
   ROTATE_SLOW_RAD: 30
   FLEE_TAG_RAD: 0
   WANDER_TIME: 10
+  sleepParticles: {fileID: 0}
+  inPack: 0
+  formationPoint: {x: 0, y: 0}
 --- !u!198 &198261139962192546
 ParticleSystem:
   m_ObjectHideFlags: 1
