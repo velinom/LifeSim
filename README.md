@@ -1,7 +1,7 @@
 # LYFE
 
 ## Info
-Lyfe is a game by Mark Velino. It uses interesting AI techniques to allow agents to interact with their environment. Agents follow smells that propagate from their sources to find things that satisfy their needs. These arents are controlled by a large set of steering behaviors that govern their movement. There are no pathfinding in the entire game, allowing agents to seek gaols without outside calculations. A playable version of the game is available in the `/build` folder.
+Lyfe is a game by Mark Velino. It uses interesting AI techniques to allow agents to interact with their environment. Agents follow smells that propagate from their sources to find things that satisfy their needs. These agents are controlled by a large set of steering behaviors that govern their movement. There is no pathfinding in the entire game, allowing agents to seek gaols without outside calculations. A playable version of the game is available in the `/build` folder.
 
 ## Controlls
 ##### Movement
